@@ -1,0 +1,1 @@
+export { ScreenshotManager } from './ScreenshotManager'

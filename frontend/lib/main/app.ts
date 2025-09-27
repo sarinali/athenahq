@@ -4,6 +4,9 @@ import appIcon from '@/resources/build/icon.png?asset'
 import { registerResourcesProtocol } from './protocols'
 import { registerWindowHandlers } from '@/lib/conveyor/handlers/window-handler'
 import { registerAppHandlers } from '@/lib/conveyor/handlers/app-handler'
+import { registerScreenshotHandlers } from '@/lib/conveyor/handlers/screenshot-handler'
+import { createScreenshotService } from './screenshot-service'
+import { createOverlayService } from './overlay-service'
 
 export function createAppWindow(): void {
   // Register custom protocol for resources
@@ -18,7 +21,7 @@ export function createAppWindow(): void {
     icon: appIcon,
     frame: false,
     titleBarStyle: 'hiddenInset',
-    title: 'Electron React App',
+    title: 'athenahq',
     maximizable: false,
     resizable: false,
     webPreferences: {
@@ -30,6 +33,11 @@ export function createAppWindow(): void {
   // Register IPC events for the main window.
   registerWindowHandlers(mainWindow)
   registerAppHandlers(app)
+  registerScreenshotHandlers()
+
+  // Initialize services
+  createScreenshotService(mainWindow)
+  createOverlayService()
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
