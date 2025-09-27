@@ -47,7 +47,7 @@ class OpenAIInferenceService:
         assembled_messages.append({"role": "user", "content": user_content})
 
         response = self._client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-5-nano",
             messages=assembled_messages
         )
         return response.choices[0].message.content
