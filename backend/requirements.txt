@@ -1,2 +1,5 @@
 fastapi
 dotenv
+openai
+uvicorn
+requests
