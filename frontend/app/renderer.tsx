@@ -9,7 +9,7 @@ import App from './app'
 ReactDOM.createRoot(document.getElementById('app') as HTMLElement).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <WindowContextProvider titlebar={{ title: 'athenahq', icon: appIcon, menuItems }}>
+      <WindowContextProvider titlebar={{ title: 'AthenaHQ', icon: appIcon, menuItems, hidden: true }}>
         <App />
         <ScreenshotManager
           apiEndpoint="http://localhost:8000"

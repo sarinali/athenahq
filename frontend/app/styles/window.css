@@ -5,7 +5,7 @@
   --window-titlebar-height: 40px;
   --window-titlebar-font-size: 13px;
   --window-scrollbar-width: 12px;
-  --window-mac-titlebar-controls-margin: 80px;
+  --window-mac-titlebar-controls-margin: 120px;
   --window-background-transition-duration: 0.3s;
   --window-c-popup-font-weight: normal;
 
@@ -59,8 +59,7 @@
 
 .window-content {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
   position: relative;
 }
 
@@ -116,8 +115,8 @@
 .window-titlebar-controls {
   display: flex;
   position: absolute;
-  right: 0;
-  top: 0;
+  right: 12px;
+  top: 8px;
   -webkit-app-region: no-drag;
 }
 

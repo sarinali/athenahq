@@ -33,21 +33,26 @@ export function createAppWindow(): void {
 
   registerResourcesProtocol()
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1280,
+    height: 800,
     show: false,
-    backgroundColor: '#1c1c1c',
+    backgroundColor: '#000',
     icon: appIcon,
     frame: false,
     titleBarStyle: 'hiddenInset',
+    trafficLightPosition: { x: 20, y: 20 },
+    //vibrancy: false, 
     title: 'athenahq',
+
     maximizable: false,
     resizable: false,
+    transparent: true,
     webPreferences: {
       preload: join(__dirname, '../preload/preload.js'),
       sandbox: false,
     },
   })
+  
 
   registerWindowHandlers(mainWindow)
   registerAppHandlers(app)
