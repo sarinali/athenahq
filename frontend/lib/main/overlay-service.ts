@@ -1,5 +1,6 @@
 import { BrowserWindow, screen } from 'electron'
 import { join } from 'path'
+import liquidGlass from 'electron-liquid-glass'
 
 export interface ToastData {
   id: string
@@ -25,9 +26,9 @@ export class OverlayService {
 
       this.overlayWindow = new BrowserWindow({
         width: 400,
-        height: 120,
+        height: 30,
         x: screenWidth - 420,
-        y: 20,
+        y: 60,
         frame: false,
         transparent: true,
         alwaysOnTop: true,
@@ -45,6 +46,21 @@ export class OverlayService {
           sandbox: false,
           preload: preloadPath,
         },
+      })
+
+      this.overlayWindow.webContents.once('did-finish-load', () => {
+        try {
+          const glassId = liquidGlass.addView(this.overlayWindow!.getNativeWindowHandle(), {
+            cornerRadius: 16,
+            opaque: false // Keep transparent for better glass effect
+          })
+          liquidGlass.unstable_setVariant(glassId, 19);
+          liquidGlass.unstable_setScrim(glassId, 0);
+          liquidGlass.unstable_setSubdued(glassId, 0);
+          console.log('[OverlayService] Liquid glass effect applied successfully, ID:', glassId)
+        } catch (error) {
+          console.log('[OverlayService] Liquid glass not available, using fallback styling:', error)
+        }
       })
 
       this.overlayWindow.setIgnoreMouseEvents(true, { forward: true })
@@ -79,9 +95,11 @@ export class OverlayService {
   }
 
   showToast(message: string, type: ToastData['type'], duration = 5000): void {
+    const truncatedMessage = message.length > 60 ? message.substring(0, 57) + '...' : message
+
     const toast: ToastData = {
       id: Math.random().toString(36).substring(7),
-      message,
+      message: truncatedMessage,
       type,
       duration
     }

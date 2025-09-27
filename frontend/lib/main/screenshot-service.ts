@@ -22,6 +22,7 @@ export class ScreenshotService {
   }
 
   setApiEndpoint(endpoint: string): void {
+    console.log('[ScreenshotService] Setting API endpoint:', endpoint)
     this.apiEndpoint = endpoint
   }
 
@@ -58,25 +59,35 @@ export class ScreenshotService {
     }
 
     try {
-      const formData = new FormData()
-      const blob = new Blob([new Uint8Array(screenshotBuffer)], { type: 'image/png' })
-      formData.append('screenshot', blob, 'screenshot.png')
+      const base64Screenshot = screenshotBuffer.toString('base64')
 
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000)
+      const requestPayload = {
+        intent: 'Finish athenahq prototype',
+        image_base64: base64Screenshot
+      }
+
 
       let response: Response
       let result: any
 
       try {
-        response = await fetch(this.apiEndpoint, {
-          method: 'GET',
-          signal: controller.signal,
+        const trackTaskUrl = `${this.apiEndpoint}/core/track-task`
+        console.log('[ScreenshotService] Making request to:', trackTaskUrl)
+        console.log('[ScreenshotService] Request payload size:', JSON.stringify(requestPayload).length, 'bytes')
+        console.log('[ScreenshotService] Base64 image size:', base64Screenshot.length, 'characters')
+
+        const startTime = Date.now()
+        response = await fetch(trackTaskUrl, {
+          method: 'POST',
           headers: {
+            'Content-Type': 'application/json',
             'Accept': 'application/json',
-          }
+          },
+          body: JSON.stringify(requestPayload)
         })
-        clearTimeout(timeoutId)
+
+        const requestTime = Date.now() - startTime
+        console.log('[ScreenshotService] Request completed in:', requestTime, 'ms')
 
         try {
           const responseText = await response.text()
@@ -90,18 +101,37 @@ export class ScreenshotService {
           result = { message: 'Invalid JSON response' }
         }
 
-        return {
-          success: response.ok,
-          message: result.message || `Response: ${response.status}`,
-          timestamp: Date.now()
-        }
-      } catch (fetchError) {
-        clearTimeout(timeoutId)
-
-        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        if (response.ok && result.status) {
+          const confidence = Math.round((result.confidence || 0) * 100)
+          return {
+            success: true,
+            message: `Status: ${result.status} (${confidence}% confidence) - ${result.reasoning || 'No reasoning provided'}`,
+            timestamp: Date.now()
+          }
+        } else {
           return {
             success: false,
-            message: 'Request timed out',
+            message: result.detail || result.message || `HTTP ${response.status}`,
+            timestamp: Date.now()
+          }
+        }
+      } catch (fetchError) {
+        console.error('[ScreenshotService] Fetch error:', fetchError)
+
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          console.error('[ScreenshotService] Request aborted due to timeout after 30 seconds')
+          return {
+            success: false,
+            message: 'Task analysis timed out',
+            timestamp: Date.now()
+          }
+        }
+
+        if (fetchError instanceof TypeError) {
+          console.error('[ScreenshotService] Network error - backend may not be running:', fetchError.message)
+          return {
+            success: false,
+            message: `Network error: ${fetchError.message}`,
             timestamp: Date.now()
           }
         }
@@ -133,8 +163,10 @@ export class ScreenshotService {
         timestamp: Date.now()
       }
     }
-
-    return await this.sendScreenshotToApi(screenshot)
+    const res = await this.sendScreenshotToApi(screenshot)
+    console.log('res', res)
+    return res
+    // return await this.sendScreenshotToApi(screenshot)
   }
 
   startPolling(): void {
