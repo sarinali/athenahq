@@ -6,46 +6,46 @@ import { useState } from 'react'
 import { Todo, Task } from './types/content-area-types'
 
 export default function App() {
-  const [todos, setTodos] = useState<Todo[]>([
-    {
-      id: '1',
-      title: 'Plan project architecture',
-      lastUpdated: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-      tasks: [
-        { id: '1-1', content: 'Research best practices', completed: false },
-        { id: '1-2', content: 'Design database schema', completed: true },
-      ]
-    },
-    {
-      id: '2',
-      title: 'Set up development environment',
-      lastUpdated: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // Yesterday
-      tasks: [
-        { id: '2-1', content: 'Install dependencies', completed: true },
-        { id: '2-2', content: 'Configure build tools', completed: false },
-      ]
-    },
-    {
-      id: '3',
-      title: 'Create initial UI components',
-      lastUpdated: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-      tasks: [
-        { id: '3-1', content: 'Design component structure', completed: false },
-      ]
-    },
-    {
-      id: '4',
-      title: 'Implement todo functionality',
-      lastUpdated: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-      tasks: [
-        { id: '4-1', content: 'Add task creation', completed: false },
-        { id: '4-2', content: 'Implement task editing', completed: false },
-      ]
-    },
-  ])
+  const [todos, setTodos] = useState<Todo[]>(
+    [
+      {
+        id: '1',
+        title: 'Plan project architecture',
+        lastUpdated: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+        tasks: [
+          { id: '1-1', content: 'Research best practices', completed: false },
+          { id: '1-2', content: 'Design database schema', completed: true },
+        ],
+      },
+      {
+        id: '2',
+        title: 'Set up development environment',
+        lastUpdated: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // Yesterday
+        tasks: [
+          { id: '2-1', content: 'Install dependencies', completed: true },
+          { id: '2-2', content: 'Configure build tools', completed: false },
+        ],
+      },
+      {
+        id: '3',
+        title: 'Create initial UI components',
+        lastUpdated: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+        tasks: [{ id: '3-1', content: 'Design component structure', completed: false }],
+      },
+      {
+        id: '4',
+        title: 'Implement todo functionality',
+        lastUpdated: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+        tasks: [
+          { id: '4-1', content: 'Add task creation', completed: false },
+          { id: '4-2', content: 'Implement task editing', completed: false },
+        ],
+      },
+    ].sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
+  )
 
-  const [selectedTodo, setSelectedTodo] = useState<Todo | null>(todos[3]) // Select the most recent todo by default
-  const [activeTodoId, setActiveTodoId] = useState<string>('4')
+  const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null) // Will be set after todos are sorted
+  const [activeTodoId, setActiveTodoId] = useState<string>('')
 
   const handleTodoSelect = (todo: Todo) => {
     setSelectedTodo(todo)
@@ -89,26 +89,24 @@ export default function App() {
 
   const handleUpdateTask = (todoId: string, taskId: string, updates: Partial<Task>) => {
     setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo.id === todoId
-          ? {
-              ...todo,
-              tasks: todo.tasks.map((task) =>
-                task.id === taskId ? { ...task, ...updates } : task
-              ),
-              lastUpdated: new Date(),
-            }
-          : todo
-      )
+      prevTodos
+        .map((todo) =>
+          todo.id === todoId
+            ? {
+                ...todo,
+                tasks: todo.tasks.map((task) => (task.id === taskId ? { ...task, ...updates } : task)),
+                lastUpdated: new Date(),
+              }
+            : todo
+        )
+        .sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
     )
 
     // Update selected todo if it's the one being updated
     if (selectedTodo && selectedTodo.id === todoId) {
       setSelectedTodo({
         ...selectedTodo,
-        tasks: selectedTodo.tasks.map((task) =>
-          task.id === taskId ? { ...task, ...updates } : task
-        ),
+        tasks: selectedTodo.tasks.map((task) => (task.id === taskId ? { ...task, ...updates } : task)),
         lastUpdated: new Date(),
       })
     }
@@ -122,15 +120,17 @@ export default function App() {
     }
 
     setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo.id === todoId
-          ? {
-              ...todo,
-              tasks: [...todo.tasks, newTask],
-              lastUpdated: new Date(),
-            }
-          : todo
-      )
+      prevTodos
+        .map((todo) =>
+          todo.id === todoId
+            ? {
+                ...todo,
+                tasks: [...todo.tasks, newTask],
+                lastUpdated: new Date(),
+              }
+            : todo
+        )
+        .sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
     )
 
     // Update selected todo if it's the one being updated
@@ -147,15 +147,17 @@ export default function App() {
 
   const handleDeleteTask = (todoId: string, taskId: string) => {
     setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo.id === todoId
-          ? {
-              ...todo,
-              tasks: todo.tasks.filter((task) => task.id !== taskId),
-              lastUpdated: new Date(),
-            }
-          : todo
-      )
+      prevTodos
+        .map((todo) =>
+          todo.id === todoId
+            ? {
+                ...todo,
+                tasks: todo.tasks.filter((task) => task.id !== taskId),
+                lastUpdated: new Date(),
+              }
+            : todo
+        )
+        .sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
     )
 
     // Update selected todo if it's the one being updated

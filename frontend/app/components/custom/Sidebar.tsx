@@ -2,12 +2,7 @@ import React from 'react'
 import GradientBorderView from '../ui/gradient-border-view'
 import { Plus } from 'lucide-react'
 import TodoItem from './TodoItem'
-
-interface Todo {
-  id: string
-  title: string
-  lastUpdated: Date
-}
+import { Todo } from '../../types/content-area-types'
 
 interface SidebarProps {
   todos: Todo[]
@@ -30,15 +25,7 @@ const Sidebar = ({ todos, activeTodoId, onTodoSelect, onNewTodo, onCompleteTodo 
       {/* Header with New Todo button */}
 
       <div className="w-full flex justify-end p-2">
-        <GradientBorderView className="rounded-full" contentClassName="rounded-full bg-[#3a3a3a] group overflow-hidden">
-          <button
-            className="w-8 aspect-square font-medium flex items-center justify-center transition-colors duration-300 hover:bg-[#505050]"
-            aria-label="New Task"
-            onClick={onNewTodo}
-          >
-            <Plus className="h-4 w-4" />
-          </button>
-        </GradientBorderView>
+        
       </div>
       <div className="h-10" />
 
