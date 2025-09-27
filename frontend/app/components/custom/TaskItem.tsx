@@ -87,7 +87,7 @@ const TaskItem = ({ task, todoId, onUpdateTask, onDeleteTask, onAddTask, isNewTa
   return (
     <div className="flex flex-row items-start gap-x-3 group">
       <div
-        className={`w-6 h-6 border-2 rounded-sm cursor-pointer transition-colors flex items-center justify-center ${
+        className={`w-5  h-5 border-1 rounded-full cursor-pointer transition-colors flex items-center justify-center ${
           task?.completed
             ? 'bg-green-500 border-green-500'
             : 'border-[#888888] hover:border-white'

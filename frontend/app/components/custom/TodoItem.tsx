@@ -33,13 +33,12 @@ const TodoItem = ({ title, lastUpdated, isActive = false, onClick }: TodoItemPro
   return (
     <>
       <div
-        className={`px-3 py-2 rounded-lg cursor-pointer transition-colors duration-200 border ${
+        className={`px-3 py-2 rounded-2xl cursor-pointer transition-colors duration-200 border border-b-[#313131] ${
           isActive ? 'bg-[#3a3a3a] border-[#313131]' : 'border-transparent hover:bg-[#2a2a2a]'
         }`}
         onClick={onClick}
       >
         <div className="flex items-center gap-x-3">
-         
           <div className="flex-1 min-w-0">
             <div className="text-white font-medium text-sm truncate">{title || 'Untitled'}</div>
             <div className="text-[#888888] text-xs flex items-center gap-x-2 mt-1">
