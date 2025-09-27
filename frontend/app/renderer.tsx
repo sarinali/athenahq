@@ -14,7 +14,7 @@ ReactDOM.createRoot(document.getElementById('app') as HTMLElement).render(
         <ScreenshotManager
           apiEndpoint="http://localhost:8000"
           pollInterval={10000}
-          autoStart={true}
+          autoStart={false}
         />
       </WindowContextProvider>
     </ErrorBoundary>
