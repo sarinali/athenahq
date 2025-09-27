@@ -4,12 +4,34 @@ import appIcon from '@/resources/build/icon.png?asset'
 import { registerResourcesProtocol } from './protocols'
 import { registerWindowHandlers } from '@/lib/conveyor/handlers/window-handler'
 import { registerAppHandlers } from '@/lib/conveyor/handlers/app-handler'
+import { registerScreenshotHandlers } from '@/lib/conveyor/handlers/screenshot-handler'
+import { createScreenshotService } from './screenshot-service'
+import { createOverlayService } from './overlay-service'
 
 export function createAppWindow(): void {
-  // Register custom protocol for resources
-  registerResourcesProtocol()
+  process.on('uncaughtException', (error) => {
+    console.error('[App] Uncaught exception:', error)
+  })
 
-  // Create the main window.
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('[App] Unhandled rejection:', reason)
+  })
+
+  app.on('browser-window-created', (event, window) => {
+    window.on('closed', () => {
+      console.log('[App] Window closed')
+    })
+  })
+
+  app.on('browser-window-blur', (event, window) => {
+    console.log('[App] Window blurred')
+  })
+
+  app.on('browser-window-focus', (event, window) => {
+    console.log('[App] Window focused')
+  })
+
+  registerResourcesProtocol()
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -20,7 +42,8 @@ export function createAppWindow(): void {
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 20, y: 20 },
     //vibrancy: false, 
-    title: 'Electron React App',
+    title: 'athenahq',
+
     maximizable: false,
     resizable: false,
     transparent: true,
@@ -31,12 +54,40 @@ export function createAppWindow(): void {
   })
   
 
-  // Register IPC events for the main window.
   registerWindowHandlers(mainWindow)
   registerAppHandlers(app)
+  registerScreenshotHandlers()
+
+  try {
+    createScreenshotService(mainWindow)
+  } catch (error) {
+    console.error('[App] Error creating screenshot service:', error)
+  }
+
+  try {
+    createOverlayService()
+  } catch (error) {
+    console.error('[App] Error creating overlay service:', error)
+  }
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+  })
+
+  mainWindow.on('close', (event) => {
+    console.log('[App] Window closing')
+  })
+
+  mainWindow.on('closed', () => {
+    console.log('[App] Window closed')
+  })
+
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    console.log('[App] Navigation handling')
+  })
+
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    console.error('[App] Failed to load:', errorCode, errorDescription, validatedURL)
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -44,11 +95,10 @@ export function createAppWindow(): void {
     return { action: 'deny' }
   })
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
   if (!app.isPackaged && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    const indexPath = join(__dirname, '../renderer/index.html')
+    mainWindow.loadFile(indexPath)
   }
 }
