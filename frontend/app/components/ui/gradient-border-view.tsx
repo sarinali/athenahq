@@ -29,7 +29,7 @@ export default function GradientBorderView({
       <div
         className={cn(
           "rounded-[20px]",
-          inverted ? "bg-black" : "bg-[#1f1f1f]",
+          inverted ? "bg-black" : "bg-[#252525]",
           contentClassName
         )}
       >

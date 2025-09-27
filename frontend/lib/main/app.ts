@@ -19,14 +19,17 @@ export function createAppWindow(): void {
     frame: false,
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 20, y: 20 },
+    //vibrancy: false, 
     title: 'Electron React App',
     maximizable: false,
     resizable: false,
+    transparent: true,
     webPreferences: {
       preload: join(__dirname, '../preload/preload.js'),
       sandbox: false,
     },
   })
+  
 
   // Register IPC events for the main window.
   registerWindowHandlers(mainWindow)
