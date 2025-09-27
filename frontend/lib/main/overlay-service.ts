@@ -54,7 +54,7 @@ export class OverlayService {
             cornerRadius: 16,
             opaque: false // Keep transparent for better glass effect
           })
-          liquidGlass.unstable_setVariant(glassId, 19);
+          liquidGlass.unstable_setVariant(glassId, 1);
           liquidGlass.unstable_setScrim(glassId, 0);
           liquidGlass.unstable_setSubdued(glassId, 0);
           console.log('[OverlayService] Liquid glass effect applied successfully, ID:', glassId)

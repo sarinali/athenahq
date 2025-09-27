@@ -11,7 +11,8 @@ export class ScreenshotService {
   private pollingInterval: NodeJS.Timeout | null = null
   private mainWindow: BrowserWindow | null = null
   private apiEndpoint: string = ''
-  private pollInterval: number = 30000
+  private pollInterval: number = 10000
+  private isRequestInProgress: boolean = false
 
   constructor(mainWindow: BrowserWindow) {
     this.mainWindow = mainWindow
@@ -155,18 +156,31 @@ export class ScreenshotService {
   }
 
   private async performScreenshotCapture(): Promise<ScreenshotResult> {
-    const screenshot = await this.captureScreenshot()
-    if (!screenshot) {
+    if (this.isRequestInProgress) {
       return {
         success: false,
-        message: 'Failed to capture screenshot',
+        message: 'Request already in progress, skipping',
         timestamp: Date.now()
       }
     }
-    const res = await this.sendScreenshotToApi(screenshot)
-    console.log('res', res)
-    return res
-    // return await this.sendScreenshotToApi(screenshot)
+
+    this.isRequestInProgress = true
+
+    try {
+      const screenshot = await this.captureScreenshot()
+      if (!screenshot) {
+        return {
+          success: false,
+          message: 'Failed to capture screenshot',
+          timestamp: Date.now()
+        }
+      }
+      const res = await this.sendScreenshotToApi(screenshot)
+      console.log('res', res)
+      return res
+    } finally {
+      this.isRequestInProgress = false
+    }
   }
 
   startPolling(): void {
