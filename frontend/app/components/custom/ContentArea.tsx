@@ -59,7 +59,7 @@ const ContentArea = ({ selectedTodo, onUpdateTodo }: ContentAreaProps) => {
         ) : (
           <div className="text-3xl font-bold text-white mb-4">Select a todo to view details</div>
         )}
-         <TaskItem />   
+        <TaskItem />
       </div>
     </div>
   )

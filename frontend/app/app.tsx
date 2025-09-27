@@ -86,7 +86,7 @@ export default function App() {
         onCompleteTodo={handleCompleteTodo}
       />
       <div className="flex flex-col w-full h-full ">
-        <Header />
+        <Header onNewTodo={handleNewTodo} />
         <ContentArea selectedTodo={selectedTodo} onUpdateTodo={handleUpdateTodo} />
       </div>
     </div>
