@@ -11,13 +11,14 @@ export function createAppWindow(): void {
 
   // Create the main window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1280,
+    height: 800,
     show: false,
-    backgroundColor: '#1c1c1c',
+    backgroundColor: '#000',
     icon: appIcon,
     frame: false,
     titleBarStyle: 'hiddenInset',
+    trafficLightPosition: { x: 20, y: 20 },
     title: 'Electron React App',
     maximizable: false,
     resizable: false,

@@ -7,7 +7,7 @@ export default function App() {
   return (
     <div className="flex flex-row w-full">
       <Sidebar />
-      <div className="flex flex-col w-full">
+      <div className="flex flex-col w-full h-full ">
         <Header />
         <ContentArea />
       </div>

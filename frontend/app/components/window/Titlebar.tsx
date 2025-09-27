@@ -11,9 +11,16 @@ const SVG_PATHS = {
 } as const
 
 export const Titlebar = () => {
-  const { title, icon, titleCentered, menuItems } = useWindowContext().titlebar
+  const { title, icon, titleCentered, menuItems, hidden } = useWindowContext().titlebar
   const { menusVisible, setMenusVisible, closeActiveMenu } = useTitlebarContext()
   const { window: wcontext } = useWindowContext()
+
+  // Debug logging
+  console.log('Titlebar render - platform:', wcontext?.platform, 'full context:', wcontext)
+
+  if (hidden) {
+    return null
+  }
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -43,7 +50,7 @@ export const Titlebar = () => {
         {title}
       </div>
       {menusVisible && <TitlebarMenu />}
-      {wcontext?.platform === 'win32' && <TitlebarControls />}
+      <TitlebarControls />
     </div>
   )
 }
@@ -86,4 +93,5 @@ export interface TitlebarProps {
   titleCentered?: boolean
   icon?: string
   menuItems?: TitlebarMenu[]
+  hidden?: boolean
 }
