@@ -12,7 +12,7 @@ ReactDOM.createRoot(document.getElementById('app') as HTMLElement).render(
       <WindowContextProvider titlebar={{ title: 'athenahq', icon: appIcon, menuItems }}>
         <App />
         <ScreenshotManager
-          apiEndpoint="http://localhost:3000/api/screenshot"
+          apiEndpoint="http://localhost:8000"
           pollInterval={30000}
           autoStart={true}
         />

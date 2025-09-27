@@ -2,59 +2,118 @@ import { handle } from '@/lib/main/shared'
 import { getScreenshotService } from '@/lib/main/screenshot-service'
 
 export const registerScreenshotHandlers = () => {
-  handle('screenshot-start-polling', (...args: [string] | [string, number]) => {
-    const service = getScreenshotService()
-    if (!service) return false
+  console.log('[ScreenshotHandler] Registering screenshot IPC handlers')
 
-    const [apiEndpoint, pollInterval] = args
-    service.setApiEndpoint(apiEndpoint)
-    if (pollInterval) {
-      service.setPollInterval(pollInterval)
+  handle('screenshot-start-polling', (...args: [string] | [string, number]) => {
+    console.log('[ScreenshotHandler] screenshot-start-polling called with args:', args)
+    const service = getScreenshotService()
+    if (!service) {
+      console.error('[ScreenshotHandler] Screenshot service not available for start-polling')
+      return false
     }
 
-    service.startPolling()
-    return true
+    const [apiEndpoint, pollInterval] = args
+    try {
+      service.setApiEndpoint(apiEndpoint)
+      if (pollInterval) {
+        service.setPollInterval(pollInterval)
+      }
+
+      service.startPolling()
+      console.log('[ScreenshotHandler] Polling started successfully')
+      return true
+    } catch (error) {
+      console.error('[ScreenshotHandler] Error starting polling:', error)
+      return false
+    }
   })
 
   handle('screenshot-stop-polling', () => {
+    console.log('[ScreenshotHandler] screenshot-stop-polling called')
     const service = getScreenshotService()
-    if (!service) return false
+    if (!service) {
+      console.error('[ScreenshotHandler] Screenshot service not available for stop-polling')
+      return false
+    }
 
-    service.stopPolling()
-    return true
+    try {
+      service.stopPolling()
+      console.log('[ScreenshotHandler] Polling stopped successfully')
+      return true
+    } catch (error) {
+      console.error('[ScreenshotHandler] Error stopping polling:', error)
+      return false
+    }
   })
 
   handle('screenshot-is-polling', () => {
+    console.log('[ScreenshotHandler] screenshot-is-polling called')
     const service = getScreenshotService()
-    return service ? service.isPolling() : false
+    const result = service ? service.isPolling() : false
+    console.log('[ScreenshotHandler] Polling status:', result)
+    return result
   })
 
-  handle('screenshot-capture-manual', () => {
+  handle('screenshot-capture-manual', async () => {
+    console.log('[ScreenshotHandler] screenshot-capture-manual called')
     const service = getScreenshotService()
     if (!service) {
-      return Promise.resolve({
+      console.error('[ScreenshotHandler] Screenshot service not available for manual capture')
+      return {
         success: false,
         message: 'Screenshot service not available',
         timestamp: Date.now()
-      })
+      }
     }
 
-    return service.captureManualScreenshot()
+    try {
+      const result = await service.captureManualScreenshot()
+      return result
+    } catch (error) {
+      console.error('[ScreenshotHandler] Error in manual capture:', error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: Date.now()
+      }
+    }
   })
 
   handle('screenshot-set-endpoint', (apiEndpoint: string) => {
+    console.log('[ScreenshotHandler] screenshot-set-endpoint called with:', apiEndpoint)
     const service = getScreenshotService()
-    if (!service) return false
+    if (!service) {
+      console.error('[ScreenshotHandler] Screenshot service not available for set-endpoint')
+      return false
+    }
 
-    service.setApiEndpoint(apiEndpoint)
-    return true
+    try {
+      service.setApiEndpoint(apiEndpoint)
+      console.log('[ScreenshotHandler] Endpoint set successfully')
+      return true
+    } catch (error) {
+      console.error('[ScreenshotHandler] Error setting endpoint:', error)
+      return false
+    }
   })
 
   handle('screenshot-set-interval', (interval: number) => {
+    console.log('[ScreenshotHandler] screenshot-set-interval called with:', interval)
     const service = getScreenshotService()
-    if (!service) return false
+    if (!service) {
+      console.error('[ScreenshotHandler] Screenshot service not available for set-interval')
+      return false
+    }
 
-    service.setPollInterval(interval)
-    return true
+    try {
+      service.setPollInterval(interval)
+      console.log('[ScreenshotHandler] Interval set successfully')
+      return true
+    } catch (error) {
+      console.error('[ScreenshotHandler] Error setting interval:', error)
+      return false
+    }
   })
+
+  console.log('[ScreenshotHandler] All screenshot IPC handlers registered successfully')
 }

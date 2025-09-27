@@ -35,7 +35,6 @@ export const ScreenshotManager: React.FC<ScreenshotManagerProps> = ({
       window.conveyor.screenshot.startPolling(apiEndpoint, pollInterval)
         .catch(console.error)
     }
-    console.log('ScreenshotManager', apiEndpoint, autoStart, pollInterval)
   }, [apiEndpoint, autoStart, pollInterval])
 
   return null

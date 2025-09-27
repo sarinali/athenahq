@@ -15,6 +15,10 @@ export class ScreenshotService {
 
   constructor(mainWindow: BrowserWindow) {
     this.mainWindow = mainWindow
+
+    mainWindow.on('closed', () => {
+      this.cleanup()
+    })
   }
 
   setApiEndpoint(endpoint: string): void {
@@ -37,16 +41,11 @@ export class ScreenshotService {
       }
 
       const primaryScreen = sources[0]
-      return primaryScreen.thumbnail.toPNG()
+      const pngBuffer = primaryScreen.thumbnail.toPNG()
+      return pngBuffer
     } catch (error) {
-      console.error('Failed to capture screenshot:', error)
       return null
     }
-  }
-
-  private isAthenaWindowActive(): boolean {
-    if (!this.mainWindow) return false
-    return this.mainWindow.isFocused()
   }
 
   private async sendScreenshotToApi(screenshotBuffer: Buffer): Promise<ScreenshotResult> {
@@ -60,39 +59,72 @@ export class ScreenshotService {
 
     try {
       const formData = new FormData()
-      const blob = new Blob([screenshotBuffer], { type: 'image/png' })
+      const blob = new Blob([new Uint8Array(screenshotBuffer)], { type: 'image/png' })
       formData.append('screenshot', blob, 'screenshot.png')
 
-      const response = await fetch(this.apiEndpoint, {
-        method: 'POST',
-        body: formData
-      })
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000)
 
-      const result = await response.json()
+      let response: Response
+      let result: any
 
-      return {
-        success: response.ok,
-        message: result.message || `Response: ${response.status}`,
-        timestamp: Date.now()
+      try {
+        response = await fetch(this.apiEndpoint, {
+          method: 'GET',
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/json',
+          }
+        })
+        clearTimeout(timeoutId)
+
+        try {
+          const responseText = await response.text()
+
+          if (responseText.trim()) {
+            result = JSON.parse(responseText)
+          } else {
+            result = { message: 'Empty response' }
+          }
+        } catch (jsonError) {
+          result = { message: 'Invalid JSON response' }
+        }
+
+        return {
+          success: response.ok,
+          message: result.message || `Response: ${response.status}`,
+          timestamp: Date.now()
+        }
+      } catch (fetchError) {
+        clearTimeout(timeoutId)
+
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          return {
+            success: false,
+            message: 'Request timed out',
+            timestamp: Date.now()
+          }
+        }
+
+        throw fetchError
       }
     } catch (error) {
+      let errorMessage = 'Unknown error'
+      if (error instanceof TypeError) {
+        errorMessage = `Network error: ${error.message}`
+      } else if (error instanceof Error) {
+        errorMessage = error.message
+      }
+
       return {
         success: false,
-        message: error instanceof Error ? error.message : 'Unknown error',
+        message: errorMessage,
         timestamp: Date.now()
       }
     }
   }
 
   private async performScreenshotCapture(): Promise<ScreenshotResult> {
-    if (this.isAthenaWindowActive()) {
-      return {
-        success: true,
-        message: 'Skipped - Athena window is active',
-        timestamp: Date.now()
-      }
-    }
-
     const screenshot = await this.captureScreenshot()
     if (!screenshot) {
       return {
@@ -111,19 +143,37 @@ export class ScreenshotService {
     }
 
     this.pollingInterval = setInterval(async () => {
-      const result = await this.performScreenshotCapture()
-      const overlayService = getOverlayService()
-
-      if (result.message === 'Skipped - Athena window is active') {
-        return
-      }
-
-      if (overlayService) {
-        if (result.success) {
-          overlayService.showToast(`Screenshot sent: ${result.message}`, 'success')
-        } else {
-          overlayService.showToast(`Screenshot failed: ${result.message}`, 'error')
+      try {
+        if (!this.mainWindow || this.mainWindow.isDestroyed()) {
+          this.stopPolling()
+          return
         }
+
+        let result: ScreenshotResult
+        try {
+          result = await this.performScreenshotCapture()
+        } catch (captureError) {
+          result = {
+            success: false,
+            message: captureError instanceof Error ? captureError.message : 'Screenshot capture failed',
+            timestamp: Date.now()
+          }
+        }
+
+        try {
+          const overlayService = getOverlayService()
+          if (overlayService) {
+            if (result.success) {
+              overlayService.showToast(`Screenshot sent: ${result.message}`, 'success')
+            } else {
+              overlayService.showToast(`Screenshot failed: ${result.message}`, 'error')
+            }
+          }
+        } catch (overlayError) {
+          console.error('[ScreenshotService] Error interacting with overlay service:', overlayError)
+        }
+      } catch (error) {
+        console.error('[ScreenshotService] Critical error in screenshot polling loop:', error)
       }
     }, this.pollInterval)
   }
@@ -141,6 +191,11 @@ export class ScreenshotService {
 
   async captureManualScreenshot(): Promise<ScreenshotResult> {
     return await this.performScreenshotCapture()
+  }
+
+  cleanup(): void {
+    this.stopPolling()
+    this.mainWindow = null
   }
 }
 
