@@ -15,13 +15,15 @@
 
     .toast-container {
       position: fixed;
-      top: 0;
-      right: 0;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       width: 100%;
-      padding: 8px 12px;
+      padding: 12px;
       pointer-events: none;
       display: flex;
       justify-content: center;
+      align-items: center;
     }
 
     .toast {
@@ -29,7 +31,7 @@
       align-items: center;
       justify-content: flex-start;
       padding: 8px 16px;
-      border-radius: 14px;
+      border-radius: 20px;
       margin-bottom: 4px;
       position: relative;
       overflow: hidden;
@@ -85,7 +87,7 @@
 
     .toast-message {
       font-size: 16px;
-      font-weight: 600;
+      font-weight: 300;
       line-height: 20px;
       letter-spacing: -0.01em;
       color: inherit;
@@ -127,6 +129,7 @@
         this.container = document.getElementById('toast-root');
         this.activeToasts = new Map();
         this.smileys = this.loadSmileys();
+        this.recentlyUsed = [];
         this.setupListeners();
       }
 
@@ -170,7 +173,7 @@
         const div = document.createElement('div');
         div.className = `toast ${toast.type}`;
 
-        const avatar = this.getAvatar(toast.id);
+        const avatar = this.getRandomAvatar();
 
         div.innerHTML = `
           <div class="avatar">
@@ -184,24 +187,37 @@
         return div;
       }
 
-      getAvatar(id) {
-        const index = Math.abs(this.hashId(id)) % this.smileys.length;
-        return this.smileys[index];
+      getRandomAvatar() {
+        if (!this.smileys.length) {
+          return '';
+        }
+        
+        if (this.recentlyUsed.length >= this.smileys.length) {
+          this.recentlyUsed = [];
+        }
+        
+        const available = this.smileys.filter(smiley => !this.recentlyUsed.includes(smiley));
+        
+        const smileysToChooseFrom = available.length > 0 ? available : this.smileys;
+        
+        const index = Math.floor(Math.random() * smileysToChooseFrom.length);
+        const selectedSmiley = smileysToChooseFrom[index];
+        
+        this.recentlyUsed.push(selectedSmiley);
+        
+        return selectedSmiley;
       }
 
       loadSmileys() {
         const paths = ['assets/smiley1.svg', 'assets/smiley2.svg', 'assets/smiley3.svg', 'assets/smiley4.svg'];
-        return paths.map((path) => new URL(`./${path}`, window.location.href).toString());
+        return paths.map((path) => {
+          if (window.location.href.includes('localhost')) {
+            return `http://localhost:5173/${path}`;
+          }
+          return new URL(`./${path}`, window.location.href).toString();
+        });
       }
 
-      hashId(id) {
-        let hash = 0;
-        for (let i = 0; i < id.length; i++) {
-          hash = (hash << 5) - hash + id.charCodeAt(i);
-          hash |= 0;
-        }
-        return hash;
-      }
     }
 
     new ToastManager();

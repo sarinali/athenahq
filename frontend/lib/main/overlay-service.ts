@@ -23,7 +23,7 @@ export class OverlayService {
       const { x: workAreaX, y: workAreaY, width: workAreaWidth } = primaryDisplay.workArea
 
       const overlayWidth = 400
-      const overlayHeight = 60
+      const overlayHeight = 90
       const overlayX = Math.round(workAreaX + (workAreaWidth - overlayWidth) / 2)
       const overlayY = workAreaY + 60
 
@@ -100,11 +100,10 @@ export class OverlayService {
   }
 
   showToast(message: string, type: ToastData['type'], duration = 5000): void {
-    const truncatedMessage = message.length > 60 ? message.substring(0, 57) + '...' : message
 
     const toast: ToastData = {
       id: Math.random().toString(36).substring(7),
-      message: truncatedMessage,
+      message: message,
       type,
       duration
     }
