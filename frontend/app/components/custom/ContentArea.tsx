@@ -14,11 +14,47 @@ interface ContentAreaProps {
 
 const ContentArea = ({ selectedTodo, onUpdateTodo, onUpdateTask, onAddTask, onDeleteTask }: ContentAreaProps) => {
   const [titleValue, setTitleValue] = useState(selectedTodo?.title || '')
-  const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
+  const [activeTaskIds, setActiveTaskIds] = useState<Record<string, string | null>>({})
 
   React.useEffect(() => {
     setTitleValue(selectedTodo?.title || '')
   }, [selectedTodo])
+
+  React.useEffect(() => {
+    if (!selectedTodo) return
+
+    setActiveTaskIds((prev) => {
+      if (prev.hasOwnProperty(selectedTodo.id)) {
+        return prev
+      }
+
+      const firstTaskId = selectedTodo.tasks[0]?.id ?? null
+      return { ...prev, [selectedTodo.id]: firstTaskId }
+    })
+  }, [selectedTodo])
+
+  React.useEffect(() => {
+    if (!selectedTodo) return
+
+    const tasks = selectedTodo.tasks
+
+    setActiveTaskIds((prev) => {
+      const currentActive = prev[selectedTodo.id]
+
+      if (tasks.length === 0) {
+        if (currentActive === null || currentActive === undefined) {
+          return prev
+        }
+        return { ...prev, [selectedTodo.id]: null }
+      }
+
+      if (currentActive && tasks.some((task) => task.id === currentActive)) {
+        return prev
+      }
+
+      return { ...prev, [selectedTodo.id]: tasks[0].id }
+    })
+  }, [selectedTodo, selectedTodo?.tasks])
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitleValue(e.target.value)
@@ -61,7 +97,12 @@ const ContentArea = ({ selectedTodo, onUpdateTodo, onUpdateTask, onAddTask, onDe
       const task = selectedTodo?.tasks.find((t) => t.id === over.id)
       const intent = task?.content || 'new task'
       console.log('📌 Dropped on task with intent:', intent)
-      setActiveTaskId(over.id as string)
+      if (selectedTodo) {
+        setActiveTaskIds((prev) => ({
+          ...prev,
+          [selectedTodo.id]: over.id as string,
+        }))
+      }
 
       try {
         console.log('📸 Capturing screenshot for intent:', intent)
@@ -90,16 +131,29 @@ const ContentArea = ({ selectedTodo, onUpdateTodo, onUpdateTask, onAddTask, onDe
               />
               <div className="flex-1 overflow-y-auto relative z-20">
                 <div className="space-y-2">
-                  {selectedTodo.tasks.map((task, index) => (
-                    <TaskItem
-                      key={task.id}
-                      task={{ ...task, active: activeTaskId === task.id || (index === 0 && !activeTaskId) }}
-                      todoId={selectedTodo.id}
-                      onUpdateTask={onUpdateTask}
-                      onDeleteTask={onDeleteTask}
-                      onAddTask={onAddTask}
-                    />
-                  ))}
+                  {selectedTodo.tasks.map((task) => {
+                    const persistedActive = activeTaskIds[selectedTodo.id]
+                    const activeExists = persistedActive
+                      ? selectedTodo.tasks.some((t) => t.id === persistedActive)
+                      : false
+                    const resolvedActiveId = activeExists
+                      ? persistedActive
+                      : selectedTodo.tasks[0]?.id ?? null
+
+                    return (
+                      <TaskItem
+                        key={task.id}
+                        task={{
+                          ...task,
+                          active: resolvedActiveId === task.id,
+                        }}
+                        todoId={selectedTodo.id}
+                        onUpdateTask={onUpdateTask}
+                        onDeleteTask={onDeleteTask}
+                        onAddTask={onAddTask}
+                      />
+                    )
+                  })}
                   <TaskItem todoId={selectedTodo.id} onAddTask={onAddTask} isNewTaskItem={true} />
                 </div>
               </div>

@@ -76,7 +76,8 @@ const Header = ({ onNewTodo, noteCount }: HeaderProps) => {
             onClick={onNewTodo}
             className="px-4 py-2 flex flex-row items-center justify-center gap-x-2 font-medium transition-colors duration-300 hover:bg-[#3a3a3a]">
             <ListTodo className="h-4 w-4" />
-            New Task
+            New 
+            List
           </button>
         </GradientBorderView>
         <HeaderButton icon={Trash} label="Delete" />
