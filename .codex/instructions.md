@@ -6,6 +6,19 @@
   - `from routes.webhooks import webhooks_router`
   - `app.include_router(webhooks_router, prefix="/webhook")`
 - Maintain configuration in `config.py` using the following pattern to load environment variables via `python-dotenv`:
+- Always ensure that imports are in for following order:
+
+```
+import ...
+```
+
+then 
+
+```
+from ... import ...
+```
+
+and ensure that all imports are in alphabetical order in their respective groupings
 
 ```python
 import os
