@@ -134,11 +134,17 @@ export const useSSEToolCalling = (): UseSSEToolCallingReturn => {
     const now = Date.now()
     const nextEvent = eventQueueRef.current.shift()
 
+    // Clear the timeout reference since we're processing now
+    eventTimeoutRef.current = null
+
     if (nextEvent) {
+      console.log(`[SSE Queue] Processing event: ${nextEvent.event.type}, remaining queue: ${eventQueueRef.current.length}`)
       handleSSEEventImmediate(nextEvent.event)
       lastEventTimeRef.current = now
 
+      // If there are more events, schedule the next one
       if (eventQueueRef.current.length > 0) {
+        console.log(`[SSE Queue] Scheduling next event in ${MIN_EVENT_DURATION}ms`)
         eventTimeoutRef.current = setTimeout(processNextEvent, MIN_EVENT_DURATION)
       }
     }
@@ -146,17 +152,25 @@ export const useSSEToolCalling = (): UseSSEToolCallingReturn => {
 
   const queueEvent = useCallback((event: SSEEvent) => {
     const now = Date.now()
-    const timeSinceLastEvent = now - lastEventTimeRef.current
 
+    console.log(`[SSE Queue] Queuing event: ${event.type}, queue length: ${eventQueueRef.current.length + 1}`)
     eventQueueRef.current.push({ event, timestamp: now })
 
+    // If no timeout is active, we need to start processing
     if (!eventTimeoutRef.current) {
+      // Check if this is the first event or enough time has passed
+      const timeSinceLastEvent = lastEventTimeRef.current === 0 ? MIN_EVENT_DURATION : now - lastEventTimeRef.current
+
       if (timeSinceLastEvent >= MIN_EVENT_DURATION) {
+        console.log(`[SSE Queue] Processing immediately (${timeSinceLastEvent}ms since last, first: ${lastEventTimeRef.current === 0})`)
         processNextEvent()
       } else {
         const remainingTime = MIN_EVENT_DURATION - timeSinceLastEvent
+        console.log(`[SSE Queue] Scheduling in ${remainingTime}ms`)
         eventTimeoutRef.current = setTimeout(processNextEvent, remainingTime)
       }
+    } else {
+      console.log(`[SSE Queue] Timeout already active, queued for later`)
     }
   }, [processNextEvent])
 
