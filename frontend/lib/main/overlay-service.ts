@@ -23,7 +23,7 @@ export class OverlayService {
       const { x: workAreaX, y: workAreaY, width: workAreaWidth } = primaryDisplay.workArea
 
       const overlayWidth = 400
-      const overlayHeight = 90
+      const overlayHeight = 60
       const overlayX = Math.round(workAreaX + (workAreaWidth - overlayWidth) / 2)
       const overlayY = workAreaY + 60
 

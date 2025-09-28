@@ -18,7 +18,12 @@ class TaskTrackingService:
             Dict with status, confidence, and reasoning
         """
         if not image_base64:
-            raise ValueError("Image is required for task tracking analysis")
+            return {
+                "status": "unknown",
+                "confidence": 0.0,
+                "reasoning": "No image provided",
+                "nudge": None,
+            }
 
         def analysis_operation() -> str:
             return self._openai_service.inference(
