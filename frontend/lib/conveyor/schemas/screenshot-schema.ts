@@ -23,6 +23,10 @@ export const screenshotIpcSchema = {
     args: z.tuple([]),
     return: ScreenshotResultSchema,
   },
+  'screenshot-capture-with-intent': {
+    args: z.tuple([z.string()]),
+    return: ScreenshotResultSchema,
+  },
   'screenshot-set-endpoint': {
     args: z.tuple([z.string()]),
     return: z.boolean(),
@@ -30,5 +34,9 @@ export const screenshotIpcSchema = {
   'screenshot-set-interval': {
     args: z.tuple([z.number()]),
     return: z.boolean(),
+  },
+  'screenshot-send-string': {
+    args: z.tuple([z.string()]),
+    return: ScreenshotResultSchema,
   },
 } as const

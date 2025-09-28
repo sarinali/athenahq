@@ -35,7 +35,7 @@ export class ScreenshotService {
     try {
       const sources = await desktopCapturer.getSources({
         types: ['screen'],
-        thumbnailSize: { width: 1920, height: 1080 }
+        thumbnailSize: { width: 1920, height: 1080 },
       })
 
       if (sources.length === 0) {
@@ -50,23 +50,97 @@ export class ScreenshotService {
     }
   }
 
-  private async sendScreenshotToApi(screenshotBuffer: Buffer): Promise<ScreenshotResult> {
+  async captureScreenshotWithIntent(intent: string): Promise<ScreenshotResult> {
+    try {
+      console.log('[ScreenshotService] Capturing screenshot with intent:', intent)
+      const screenshotBuffer = await this.captureScreenshot()
+      if (!screenshotBuffer) {
+        console.log('[ScreenshotService] Screenshot buffer is null/undefined')
+        return {
+          success: false,
+          message: 'Failed to capture screenshot',
+          timestamp: Date.now(),
+        }
+      }
+
+      console.log('[ScreenshotService] Screenshot buffer size:', screenshotBuffer.length, 'bytes')
+      return await this.sendScreenshotToApi(screenshotBuffer, intent)
+    } catch (error) {
+      console.error('[ScreenshotService] Error in captureScreenshotWithIntent:', error)
+      return {
+        success: false,
+        message: `Screenshot capture failed: ${error}`,
+        timestamp: Date.now(),
+      }
+    }
+  }
+
+  async sendStringToBackend(message: string): Promise<ScreenshotResult> {
     if (!this.apiEndpoint) {
       return {
         success: false,
         message: 'No API endpoint configured',
-        timestamp: Date.now()
+        timestamp: Date.now(),
+      }
+    }
+
+    try {
+      console.log('[ScreenshotService] Sending string to backend:', message)
+
+      const requestPayload = {
+        message: message,
+      }
+
+      const response = await fetch(`${this.apiEndpoint}/core/echo`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(requestPayload),
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        return {
+          success: true,
+          message: `Backend received: ${result.message || message}`,
+          timestamp: Date.now(),
+        }
+      } else {
+        return {
+          success: false,
+          message: `Backend error: ${response.status}`,
+          timestamp: Date.now(),
+        }
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: `Network error: ${error}`,
+        timestamp: Date.now(),
+      }
+    }
+  }
+
+  private async sendScreenshotToApi(screenshotBuffer: Buffer, intent?: string): Promise<ScreenshotResult> {
+    if (!this.apiEndpoint) {
+      return {
+        success: false,
+        message: 'No API endpoint configured',
+        timestamp: Date.now(),
       }
     }
 
     try {
       const base64Screenshot = screenshotBuffer.toString('base64')
+      console.log('[ScreenshotService] Base64 screenshot length:', base64Screenshot.length)
+      console.log('[ScreenshotService] Base64 screenshot preview:', base64Screenshot.substring(0, 50) + '...')
 
       const requestPayload = {
-        intent: 'Finish athenahq prototype',
-        image_base64: base64Screenshot
+        intent: intent || 'Finish athenahq prototype',
+        image_base64: base64Screenshot,
       }
-
 
       let response: Response
       let result: any
@@ -82,9 +156,9 @@ export class ScreenshotService {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            Accept: 'application/json',
           },
-          body: JSON.stringify(requestPayload)
+          body: JSON.stringify(requestPayload),
         })
 
         const requestTime = Date.now() - startTime
@@ -107,13 +181,13 @@ export class ScreenshotService {
           return {
             success: true,
             message: `Status: ${result.status} (${confidence}% confidence) - ${result.reasoning || 'No reasoning provided'}`,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           }
         } else {
           return {
             success: false,
             message: result.detail || result.message || `HTTP ${response.status}`,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           }
         }
       } catch (fetchError) {
@@ -124,7 +198,7 @@ export class ScreenshotService {
           return {
             success: false,
             message: 'Task analysis timed out',
-            timestamp: Date.now()
+            timestamp: Date.now(),
           }
         }
 
@@ -133,7 +207,7 @@ export class ScreenshotService {
           return {
             success: false,
             message: `Network error: ${fetchError.message}`,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           }
         }
 
@@ -150,7 +224,7 @@ export class ScreenshotService {
       return {
         success: false,
         message: errorMessage,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
     }
   }
@@ -160,7 +234,7 @@ export class ScreenshotService {
       return {
         success: false,
         message: 'Request already in progress, skipping',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
     }
 
@@ -172,7 +246,7 @@ export class ScreenshotService {
         return {
           success: false,
           message: 'Failed to capture screenshot',
-          timestamp: Date.now()
+          timestamp: Date.now(),
         }
       }
       const res = await this.sendScreenshotToApi(screenshot)
@@ -202,7 +276,7 @@ export class ScreenshotService {
           result = {
             success: false,
             message: captureError instanceof Error ? captureError.message : 'Screenshot capture failed',
-            timestamp: Date.now()
+            timestamp: Date.now(),
           }
         }
 

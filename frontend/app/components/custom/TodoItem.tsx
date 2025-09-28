@@ -33,8 +33,8 @@ const TodoItem = ({ title, lastUpdated, isActive = false, onClick }: TodoItemPro
   return (
     <>
       <div
-        className={`px-3 py-2 rounded-2xl cursor-pointer transition-colors duration-200 border border-b-[#313131] ${
-          isActive ? 'bg-[#3a3a3a] border-[#313131]' : 'border-transparent hover:bg-[#2a2a2a]'
+        className={`px-3 py-2 rounded-2xl cursor-pointer transition-colors duration-200 border border-transparent ${
+          isActive ? 'bg-[#3a3a3a] border-[#313131]' : 'hover:bg-[#2a2a2a]'
         }`}
         onClick={onClick}
       >

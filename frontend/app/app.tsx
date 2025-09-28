@@ -13,7 +13,7 @@ export default function App() {
         title: 'Plan project architecture',
         lastUpdated: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
         tasks: [
-          { id: '1-1', content: 'Research best practices', completed: false },
+          { id: '1-1', content: 'Research best practices', completed: false, active: true },
           { id: '1-2', content: 'Design database schema', completed: true },
         ],
       },
@@ -22,7 +22,7 @@ export default function App() {
         title: 'Set up development environment',
         lastUpdated: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // Yesterday
         tasks: [
-          { id: '2-1', content: 'Install dependencies', completed: true },
+          { id: '2-1', content: 'Install dependencies', completed: true, active: true },
           { id: '2-2', content: 'Configure build tools', completed: false },
         ],
       },
@@ -30,14 +30,14 @@ export default function App() {
         id: '3',
         title: 'Create initial UI components',
         lastUpdated: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-        tasks: [{ id: '3-1', content: 'Design component structure', completed: false }],
+        tasks: [{ id: '3-1', content: 'Design component structure', completed: false, active: true }],
       },
       {
         id: '4',
         title: 'Implement todo functionality',
         lastUpdated: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
         tasks: [
-          { id: '4-1', content: 'Add task creation', completed: false },
+          { id: '4-1', content: 'Add task creation', completed: false, active: true },
           { id: '4-2', content: 'Implement task editing', completed: false },
         ],
       },

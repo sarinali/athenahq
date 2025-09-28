@@ -26,3 +26,10 @@ async def track_task(payload: TaskTrackingRequest) -> TaskTrackingResponse:
         image_base64=payload.image_base64
     )
     return TaskTrackingResponse(**result)
+
+
+@core_router.post("/echo")
+async def echo_message(payload: dict) -> dict:
+    message = payload.get("message", "")
+    print(f"[Backend] Received message: {message}")
+    return {"message": f"Echo: {message}", "received_at": "2024-01-01T00:00:00Z"}
