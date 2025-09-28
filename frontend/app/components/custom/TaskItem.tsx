@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { Task } from '../../types/content-area-types'
 import { Check } from 'lucide-react'
@@ -54,14 +54,27 @@ const TaskItem = ({
     setContent(task?.content || '')
   }, [task])
 
+  const adjustTextareaHeight = useCallback(() => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+
+    textarea.style.height = 'auto'
+    textarea.style.height = `${textarea.scrollHeight}px`
+  }, [])
+
   useEffect(() => {
     if (isEditing && textareaRef.current) {
       textareaRef.current.focus()
       textareaRef.current.setSelectionRange(content.length, content.length)
+      adjustTextareaHeight()
     } else {
       setIsHighlighted(false)
     }
-  }, [isEditing, content])
+  }, [isEditing, content, adjustTextareaHeight])
+
+  useLayoutEffect(() => {
+    adjustTextareaHeight()
+  }, [content, adjustTextareaHeight])
 
   useEffect(() => {
     onHighlightChange?.(isHighlighted)
@@ -76,6 +89,7 @@ const TaskItem = ({
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setContent(e.target.value)
+    adjustTextareaHeight()
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -171,18 +185,18 @@ const TaskItem = ({
           }`}
         >
           <div
-            className={`w-5 h-5 border-1 rounded-full cursor-pointer transition-colors flex items-center justify-center ${
+            className={`w-5 aspect-square border-1 rounded-full cursor-pointer transition-colors flex items-center justify-center ${
               task?.completed ? 'bg-green-500 border-green-500' : 'border-[#888888] hover:border-white'
             }`}
             onClick={handleCheckboxChange}
           >
             {task?.completed && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
           </div>
-
-          <div className="flex min-w-0 ">
+            <div className='w-full flex flex-row justify-center items-center gap-x-3'>
+            <div className="flex w-full min-w-0 ">
             <textarea
               ref={textareaRef}
-              className={`w-full bg-transparent border-none outline-none resize-none overflow-hidden text-white placeholder-[#888888] leading-5 ${
+              className={`w-full border-none outline-none resize-none text-white placeholder-[#888888] leading-5 ${
                 task?.completed ? 'line-through opacity-60' : ''
               } ${!isEditing ? 'cursor-text' : ''} min-h-6 ${isHighlighted ? 'bg-blue-500/20' : ''}`}
               value={content}
@@ -203,6 +217,9 @@ const TaskItem = ({
           </div>
 
           {task?.active && <ActiveDraggable id={`active-${task.id}`} />}
+
+            </div>
+
         </div>
       </PopoverTrigger>
       <PopoverContent side="top" align="start" className="border-none p-0 bg-transparent w-auto max-w-sm" sideOffset={8}>
