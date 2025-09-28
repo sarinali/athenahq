@@ -8,5 +8,6 @@ langchain
 langchain-community
 langchain_openai
 openai
+pygithub
 requests
 uvicorn
