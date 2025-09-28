@@ -5,6 +5,9 @@ export interface ScreenshotResult {
   success: boolean
   message: string
   timestamp: number
+  status?: string
+  nudge?: string | null
+  showOverlay?: boolean
 }
 
 export class ScreenshotService {
@@ -177,17 +180,31 @@ export class ScreenshotService {
         }
 
         if (response.ok && result.status) {
-          const confidence = Math.round((result.confidence || 0) * 100)
+          const status: string = result.status
+          const nudge: string | undefined = result.nudge
+          const fallbackNudge = 'Quick reset and back to your goal - want to jump in now?'
+          const message = status === 'on_track'
+            ? 'On track'
+            : (nudge && nudge.trim().length > 0)
+              ? nudge
+              : fallbackNudge
+
           return {
             success: true,
-            message: `Status: ${result.status} (${confidence}% confidence) - ${result.reasoning || 'No reasoning provided'}`,
+            message,
             timestamp: Date.now(),
+            status,
+            nudge: nudge ?? null,
+            showOverlay: status !== 'on_track',
           }
         } else {
           return {
             success: false,
             message: result.detail || result.message || `HTTP ${response.status}`,
             timestamp: Date.now(),
+            status: result.status,
+            nudge: result.nudge ?? null,
+            showOverlay: true,
           }
         }
       } catch (fetchError) {
@@ -282,12 +299,9 @@ export class ScreenshotService {
 
         try {
           const overlayService = getOverlayService()
-          if (overlayService) {
-            if (result.success) {
-              overlayService.showToast(`Screenshot sent: ${result.message}`, 'success')
-            } else {
-              overlayService.showToast(`Screenshot failed: ${result.message}`, 'error')
-            }
+          if (overlayService && result.showOverlay) {
+            const toastType: 'success' | 'error' | 'info' = result.success ? 'info' : 'error'
+            overlayService.showToast(result.message, toastType)
           }
         } catch (overlayError) {
           console.error('[ScreenshotService] Error interacting with overlay service:', overlayError)

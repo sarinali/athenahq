@@ -216,12 +216,7 @@ const TaskItem = ({
                       <AvatarFallback
                         className="overflow-hidden"
                         style={{
-                          background: 'hsla(0,0%,100%,1)',
-                          backgroundImage: `
-                            radial-gradient(at 0% 50%, hsla(214,100%,78%,1) 0px, transparent 50%),
-                            radial-gradient(at 80% 50%, hsla(340,100%,76%,0.66) 0px, transparent 50%),
-                            radial-gradient(at 80% 100%, hsla(240,100%,70%,0.54) 0px, transparent 50%)
-                          `,
+                          background: 'white',
                         }}
                       >
                         <img src={currentSmileySrc} alt="smiley" className="w-4 h-4 object-contain" />

@@ -1,7 +1,23 @@
-from typing import Optional
+import random
+from typing import List
 
 
 class TaskTrackingPrompts:
+    OFF_TRACK_NUDGES: List[str] = [
+        "I see your focus drifting - want to jump back into that task for a few minutes?",
+        "Quick nudge: the goal you care about is waiting. Let's give it a little love.",
+        "Feels like a detour. How about we knock out one tiny step toward your intent?",
+        "Future-you is rooting for you to lean back in right now.",
+        "Hey, this tab isn't helping the mission. Ready to slide back to it?",
+        "You've got a plan - let's sync back up with it for a quick win.",
+        "We both know what you meant to work on. Want to pick it up again?",
+        "That distraction can wait. Your goal deserves the next few minutes.",
+        "Small reset, big payoff: hop back into what matters most?",
+        "Imagine how good it'll feel to make progress - let's get you there now.",
+        "Let's reroute this energy into the task you actually care about.",
+        "A tiny sprint on your real priority will feel better than this scroll - shall we?",
+    ]
+
     @staticmethod
     def get_task_analysis_system_prompt() -> str:
         return """You are an AI assistant that analyzes screenshots to determine if a person is on track or off track with their current task.
@@ -42,3 +58,7 @@ CRITICAL: Respond ONLY with the JSON object. No additional text, explanations, o
     @staticmethod
     def get_task_analysis_user_prompt(intent: str) -> str:
         return f"Analyze this screenshot and determine if the person is on track or off track with their stated intent: '{intent}'"
+
+    @classmethod
+    def get_off_track_nudge(cls) -> str:
+        return random.choice(cls.OFF_TRACK_NUDGES)

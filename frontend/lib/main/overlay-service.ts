@@ -20,15 +20,20 @@ export class OverlayService {
 
     try {
       const primaryDisplay = screen.getPrimaryDisplay()
-      const { width: screenWidth } = primaryDisplay.workAreaSize
+      const { x: workAreaX, y: workAreaY, width: workAreaWidth } = primaryDisplay.workArea
+
+      const overlayWidth = 400
+      const overlayHeight = 60
+      const overlayX = Math.round(workAreaX + (workAreaWidth - overlayWidth) / 2)
+      const overlayY = workAreaY + 60
 
       const preloadPath = join(__dirname, '../preload/overlay-preload.js')
 
       this.overlayWindow = new BrowserWindow({
-        width: 400,
-        height: 30,
-        x: screenWidth - 420,
-        y: 60,
+        width: overlayWidth,
+        height: overlayHeight,
+        x: overlayX,
+        y: overlayY,
         frame: false,
         transparent: true,
         alwaysOnTop: true,
@@ -51,7 +56,7 @@ export class OverlayService {
       this.overlayWindow.webContents.once('did-finish-load', () => {
         try {
           const glassId = liquidGlass.addView(this.overlayWindow!.getNativeWindowHandle(), {
-            cornerRadius: 16,
+            cornerRadius: 8,
             opaque: false // Keep transparent for better glass effect
           })
           liquidGlass.unstable_setVariant(glassId, 1);

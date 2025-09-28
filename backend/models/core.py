@@ -27,3 +27,4 @@ class TaskTrackingResponse(BaseModel):
     status: str
     confidence: float
     reasoning: str
+    nudge: Optional[str] = None

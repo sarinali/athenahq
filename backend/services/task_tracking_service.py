@@ -31,14 +31,22 @@ class TaskTrackingService:
         fallback_result = {
             "status": "unknown",
             "confidence": 0.0,
-            "reasoning": "Failed to get valid response after retries"
+            "reasoning": "Failed to get valid response after retries",
+            "nudge": None,
         }
 
-        return self._retry_service.retry_with_schema_validation(
+        result = self._retry_service.retry_with_schema_validation(
             operation=analysis_operation,
             schema_validator=validate_task_tracking_schema,
             fallback_result=fallback_result
         )
+
+        if result.get("status") == "off_track":
+            result["nudge"] = TaskTrackingPrompts.get_off_track_nudge()
+        else:
+            result.setdefault("nudge", None)
+
+        return result
 
 
 service = TaskTrackingService()

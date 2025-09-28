@@ -11,6 +11,9 @@ declare global {
           success: boolean
           message: string
           timestamp: number
+          status?: string
+          nudge?: string | null
+          showOverlay?: boolean
         }>
         setEndpoint: (endpoint: string) => Promise<boolean>
         setInterval: (interval: number) => Promise<boolean>

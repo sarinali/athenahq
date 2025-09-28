@@ -4,6 +4,9 @@ const ScreenshotResultSchema = z.object({
   success: z.boolean(),
   message: z.string(),
   timestamp: z.number(),
+  status: z.string().optional(),
+  nudge: z.string().nullable().optional(),
+  showOverlay: z.boolean().optional(),
 })
 
 export const screenshotIpcSchema = {
