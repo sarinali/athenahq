@@ -2,7 +2,7 @@ import './styles/app.css'
 import ContentArea from './components/custom/ContentArea'
 import Sidebar from './components/custom/Sidebar'
 import Header from './components/layout/Header'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Todo, Task } from './types/content-area-types'
 
 export default function App() {
@@ -44,8 +44,16 @@ export default function App() {
     ].sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
   )
 
-  const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null) // Will be set after todos are sorted
+  const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null)
   const [activeTodoId, setActiveTodoId] = useState<string>('')
+
+  useEffect(() => {
+    if (todos.length > 0 && !selectedTodo) {
+      const mostRecentTodo = todos[0]
+      setSelectedTodo(mostRecentTodo)
+      setActiveTodoId(mostRecentTodo.id)
+    }
+  }, [todos, selectedTodo])
 
   const handleTodoSelect = (todo: Todo) => {
     setSelectedTodo(todo)
@@ -180,7 +188,7 @@ export default function App() {
         onCompleteTodo={handleCompleteTodo}
       />
       <div className="flex flex-col w-full h-full ">
-        <Header onNewTodo={handleNewTodo} />
+        <Header onNewTodo={handleNewTodo} noteCount={todos.length} />
         <ContentArea
           selectedTodo={selectedTodo}
           onUpdateTodo={handleUpdateTodo}

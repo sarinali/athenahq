@@ -43,7 +43,6 @@ const ContentArea = ({ selectedTodo, onUpdateTodo, onUpdateTask, onAddTask, onDe
   }
 
   const handleDragStart = () => {
-    // Do nothing on drag start
   }
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -64,10 +63,8 @@ const ContentArea = ({ selectedTodo, onUpdateTodo, onUpdateTask, onAddTask, onDe
       console.log('📌 Dropped on task with intent:', intent)
       setActiveTaskId(over.id as string)
 
-      // Capture screenshot with the task intent
       try {
         console.log('📸 Capturing screenshot for intent:', intent)
-        // Ensure API endpoint is configured
         await window.conveyor.screenshot.setEndpoint('http://localhost:8000')
         const result = await window.conveyor.screenshot.captureWithIntent(intent)
         console.log('📸 Screenshot result:', result)
