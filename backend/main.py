@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routes.core import core_router
-from routes.tool_calling import tool_calling_router
+from routes.native_tool_calling import native_tool_calling_router
 from config import config
 
 app = FastAPI()
@@ -25,7 +25,7 @@ app.add_middleware(
 
 # register routers
 app.include_router(core_router, prefix="/core")
-app.include_router(tool_calling_router, prefix="/tool-calling")
+app.include_router(native_tool_calling_router, prefix="/tool-calling")
 
 @app.get("/")
 def read_root() -> dict:

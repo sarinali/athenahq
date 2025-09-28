@@ -1,6 +1,11 @@
 import { useState, useRef, useCallback } from 'react'
 import { ToolCall, SSEEvent, ExecutionState } from '../types/content-area-types'
 
+interface QueuedEvent {
+  event: SSEEvent
+  timestamp: number
+}
+
 interface UseSSEToolCallingReturn {
   toolCalls: ToolCall[]
   isConnected: boolean
@@ -16,11 +21,22 @@ export const useSSEToolCalling = (): UseSSEToolCallingReturn => {
   const [isExecuting, setIsExecuting] = useState(false)
   const [executionState, setExecutionState] = useState<ExecutionState>({ isStarted: false })
   const abortControllerRef = useRef<AbortController | null>(null)
+  const eventQueueRef = useRef<QueuedEvent[]>([])
+  const lastEventTimeRef = useRef<number>(0)
+  const eventTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const MIN_EVENT_DURATION = 3000 // 3 seconds minimum per event
 
   const clearToolCalls = useCallback(() => {
     setToolCalls([])
     setIsExecuting(false)
     setExecutionState({ isStarted: false })
+    eventQueueRef.current = []
+    lastEventTimeRef.current = 0
+    if (eventTimeoutRef.current) {
+      clearTimeout(eventTimeoutRef.current)
+      eventTimeoutRef.current = null
+    }
   }, [])
 
   const closeConnection = useCallback(() => {
@@ -32,18 +48,22 @@ export const useSSEToolCalling = (): UseSSEToolCallingReturn => {
     }
   }, [])
 
-  const handleSSEEvent = useCallback((data: SSEEvent) => {
+  const handleSSEEventImmediate = useCallback((data: SSEEvent) => {
     switch (data.type) {
       case 'started':
         setExecutionState({ isStarted: true })
         break
 
+      case 'tool_calls_detected':
+        console.log(`Tool calls detected: ${data.count} tools in iteration ${data.iteration}`)
+        break
+
       case 'tool_started':
         if (data.tool_name) {
           const newToolCall: ToolCall = {
-            id: `${data.tool_name}-${Date.now()}`,
+            id: `${data.tool_name}-${Date.now()}-${data.iteration || 1}`,
             tool_name: data.tool_name,
-            input: data.input,
+            input: typeof data.input === 'object' ? JSON.stringify(data.input) : data.input,
             status: 'started',
             timestamp: new Date(),
           }
@@ -66,6 +86,21 @@ export const useSSEToolCalling = (): UseSSEToolCallingReturn => {
         )
         break
 
+      case 'tool_error':
+        setToolCalls(prev =>
+          prev.map(call => {
+            if (call.status === 'started' && call.tool_name === data.tool_name) {
+              return {
+                ...call,
+                output: `Error: ${data.error}`,
+                status: 'completed' as const,
+              }
+            }
+            return call
+          })
+        )
+        break
+
       case 'final_result':
         setExecutionState(prev => ({
           ...prev,
@@ -74,8 +109,64 @@ export const useSSEToolCalling = (): UseSSEToolCallingReturn => {
         setIsExecuting(false)
         setIsConnected(false)
         break
+
+      case 'max_iterations_reached':
+        setExecutionState(prev => ({
+          ...prev,
+          finalResult: 'Task execution stopped due to iteration limit'
+        }))
+        setIsExecuting(false)
+        setIsConnected(false)
+        break
+
+      case 'error':
+        setExecutionState(prev => ({
+          ...prev,
+          finalResult: `Error: ${data.message}`
+        }))
+        setIsExecuting(false)
+        setIsConnected(false)
+        break
     }
   }, [])
+
+  const processNextEvent = useCallback(() => {
+    const now = Date.now()
+    const nextEvent = eventQueueRef.current.shift()
+
+    if (nextEvent) {
+      handleSSEEventImmediate(nextEvent.event)
+      lastEventTimeRef.current = now
+
+      if (eventQueueRef.current.length > 0) {
+        eventTimeoutRef.current = setTimeout(processNextEvent, MIN_EVENT_DURATION)
+      }
+    }
+  }, [handleSSEEventImmediate])
+
+  const queueEvent = useCallback((event: SSEEvent) => {
+    const now = Date.now()
+    const timeSinceLastEvent = now - lastEventTimeRef.current
+
+    eventQueueRef.current.push({ event, timestamp: now })
+
+    if (!eventTimeoutRef.current) {
+      if (timeSinceLastEvent >= MIN_EVENT_DURATION) {
+        processNextEvent()
+      } else {
+        const remainingTime = MIN_EVENT_DURATION - timeSinceLastEvent
+        eventTimeoutRef.current = setTimeout(processNextEvent, remainingTime)
+      }
+    }
+  }, [processNextEvent])
+
+  const handleSSEEvent = useCallback((data: SSEEvent) => {
+    if (data.type === 'error') {
+      handleSSEEventImmediate(data)
+    } else {
+      queueEvent(data)
+    }
+  }, [handleSSEEventImmediate, queueEvent])
 
   const startExecution = useCallback(async (prompt: string) => {
     closeConnection()

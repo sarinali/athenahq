@@ -27,9 +27,12 @@ export interface ExecutionState {
 }
 
 export interface SSEEvent {
-  type: 'started' | 'tool_started' | 'tool_completed' | 'final_result'
+  type: 'started' | 'tool_calls_detected' | 'tool_started' | 'tool_completed' | 'tool_error' | 'final_result' | 'max_iterations_reached' | 'error'
   tool_name?: string
-  input?: string
+  input?: string | object
   output?: string
   message?: string
+  error?: string
+  count?: number
+  iteration?: number
 }
