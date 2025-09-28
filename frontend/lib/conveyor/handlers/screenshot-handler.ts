@@ -168,5 +168,23 @@ export const registerScreenshotHandlers = () => {
     }
   })
 
+  handle('screenshot-set-default-intent', (intent: string) => {
+    console.log('[ScreenshotHandler] screenshot-set-default-intent called with:', intent)
+    const service = getScreenshotService()
+    if (!service) {
+      console.error('[ScreenshotHandler] Screenshot service not available for set-default-intent')
+      return false
+    }
+
+    try {
+      service.setDefaultIntent(intent)
+      console.log('[ScreenshotHandler] Default intent set successfully')
+      return true
+    } catch (error) {
+      console.error('[ScreenshotHandler] Error setting default intent:', error)
+      return false
+    }
+  })
+
   console.log('[ScreenshotHandler] All screenshot IPC handlers registered successfully')
 }

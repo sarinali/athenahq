@@ -17,6 +17,7 @@ declare global {
         }>
         setEndpoint: (endpoint: string) => Promise<boolean>
         setInterval: (interval: number) => Promise<boolean>
+        setDefaultIntent: (intent: string) => Promise<boolean>
       }
     }
   }

@@ -37,8 +37,9 @@ export default function App() {
         title: 'Implement todo functionality',
         lastUpdated: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
         tasks: [
-          { id: '4-1', content: 'Add task creation', completed: false, active: true },
-          { id: '4-2', content: 'Implement task editing', completed: false },
+          { id: '4-1', content: 'summarize google doc aviation and send email to ryanjin333@gmail.com about the summary', completed: false, active: true },
+          { id: '4-2', content: 'make new github issue in sarinali/athenahq repo to indicate backend needs fixing', completed: false },
+          { id: '4-2', content: 'implement backend fixes', completed: false },
         ],
       },
     ].sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
@@ -54,6 +55,28 @@ export default function App() {
       setActiveTodoId(mostRecentTodo.id)
     }
   }, [todos, selectedTodo])
+
+  // Update default intent whenever todos change
+  useEffect(() => {
+    const getDefaultIntent = () => {
+      // Find the first todo with tasks
+      for (const todo of todos) {
+        if (todo.tasks.length > 0) {
+          const firstIncompleteTask = todo.tasks.find(task => !task.completed)
+          if (firstIncompleteTask) {
+            return firstIncompleteTask.content
+          }
+        }
+      }
+      return 'Complete current task'
+    }
+
+    const defaultIntent = getDefaultIntent()
+    // Set the default intent for the screenshot service
+    if (window.conveyor?.screenshot?.setDefaultIntent) {
+      window.conveyor.screenshot.setDefaultIntent(defaultIntent)
+    }
+  }, [todos])
 
   const handleTodoSelect = (todo: Todo) => {
     setSelectedTodo(todo)

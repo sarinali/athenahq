@@ -42,4 +42,8 @@ export const screenshotIpcSchema = {
     args: z.tuple([z.string()]),
     return: ScreenshotResultSchema,
   },
+  'screenshot-set-default-intent': {
+    args: z.tuple([z.string()]),
+    return: z.boolean(),
+  },
 } as const

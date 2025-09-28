@@ -25,7 +25,7 @@ export const useSSEToolCalling = (): UseSSEToolCallingReturn => {
   const lastEventTimeRef = useRef<number>(0)
   const eventTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const MIN_EVENT_DURATION = 3000 // 3 seconds minimum per event
+  const MIN_EVENT_DURATION = 1500 // 1.5 seconds minimum per event
 
   const clearToolCalls = useCallback(() => {
     setToolCalls([])

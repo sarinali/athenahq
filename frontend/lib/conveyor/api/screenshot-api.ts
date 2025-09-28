@@ -29,4 +29,6 @@ export class ScreenshotApi extends ConveyorApi {
   setInterval = (interval: number) => this.invoke('screenshot-set-interval', interval)
 
   sendString = (message: string): Promise<ScreenshotResult> => this.invoke('screenshot-send-string', message)
+
+  setDefaultIntent = (intent: string) => this.invoke('screenshot-set-default-intent', intent)
 }

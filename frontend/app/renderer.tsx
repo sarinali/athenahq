@@ -11,11 +11,11 @@ ReactDOM.createRoot(document.getElementById('app') as HTMLElement).render(
     <ErrorBoundary>
       <WindowContextProvider titlebar={{ title: 'AthenaHQ', icon: appIcon, menuItems, hidden: true }}>
         <App />
-        {/* <ScreenshotManager
+        <ScreenshotManager
           apiEndpoint="http://localhost:8000"
           pollInterval={10000}
-          autoStart={false}
-        /> */}
+          autoStart={true}
+        />
       </WindowContextProvider>
     </ErrorBoundary>
   </React.StrictMode>

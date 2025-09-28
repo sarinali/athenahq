@@ -1,5 +1,5 @@
 import json
-from typing import Any, Callable, Dict, Optional, TypeVar
+from typing import Any, Callable, Dict, Optional, TypeVar, Union
 
 T = TypeVar('T')
 
@@ -58,33 +58,46 @@ class RetryService:
         return fallback_with_error
 
 
-def validate_task_tracking_schema(data: Dict[str, Any]) -> bool:
-    """Validate that the response matches expected task tracking schema."""
+def validate_task_tracking_schema(data: Any) -> Dict[str, Any]:
+    """Validate that the response matches expected task tracking schema and return parsed data."""
+    import json
+
+    # Handle both string and dict inputs
+    if isinstance(data, str):
+        try:
+            parsed_data = json.loads(data.strip())
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON: {str(e)}")
+    elif isinstance(data, dict):
+        parsed_data = data
+    else:
+        raise ValueError(f"Data must be string or dict, got {type(data)}")
+
     required_fields = ["status", "confidence", "reasoning"]
     valid_statuses = ["on_track", "off_track", "unknown"]
 
     # Check required fields exist
     for field in required_fields:
-        if field not in data:
-            return False
+        if field not in parsed_data:
+            raise ValueError(f"Missing required field: {field}")
 
     # Check status is valid
-    if data["status"] not in valid_statuses:
-        return False
+    if parsed_data["status"] not in valid_statuses:
+        raise ValueError(f"Invalid status: {parsed_data['status']}")
 
     # Check confidence is a number between 0 and 1
     try:
-        confidence = float(data["confidence"])
+        confidence = float(parsed_data["confidence"])
         if not (0.0 <= confidence <= 1.0):
-            return False
-    except (ValueError, TypeError):
-        return False
+            raise ValueError(f"Confidence out of range: {confidence}")
+    except (ValueError, TypeError) as e:
+        raise ValueError(f"Invalid confidence value: {str(e)}")
 
     # Check reasoning is a string
-    if not isinstance(data["reasoning"], str):
-        return False
+    if not isinstance(parsed_data["reasoning"], str):
+        raise ValueError(f"Reasoning must be a string")
 
-    return True
+    return parsed_data
 
 
 service = RetryService()

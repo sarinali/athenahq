@@ -16,6 +16,7 @@ export class ScreenshotService {
   private apiEndpoint: string = ''
   private pollInterval: number = 10000
   private isRequestInProgress: boolean = false
+  private defaultIntent: string = 'Complete current task'
 
   constructor(mainWindow: BrowserWindow) {
     this.mainWindow = mainWindow
@@ -32,6 +33,11 @@ export class ScreenshotService {
 
   setPollInterval(interval: number): void {
     this.pollInterval = interval
+  }
+
+  setDefaultIntent(intent: string): void {
+    console.log('[ScreenshotService] Setting default intent:', intent)
+    this.defaultIntent = intent
   }
 
   async captureScreenshot(): Promise<Buffer | null> {
@@ -141,7 +147,7 @@ export class ScreenshotService {
       console.log('[ScreenshotService] Base64 screenshot preview:', base64Screenshot.substring(0, 50) + '...')
 
       const requestPayload = {
-        intent: intent || 'Finish athenahq prototype',
+        intent: intent || this.defaultIntent,
         image_base64: base64Screenshot,
       }
 

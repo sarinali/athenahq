@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
+import { useAgentPersonality } from '../../hooks/useAgentPersonality'
 
 import Smiley1 from '../../assets/smiley1.svg'
 import Smiley2 from '../../assets/smiley2.svg'
@@ -21,6 +22,9 @@ const AvatarButton = () => {
   const [currentSmileyIndex, setCurrentSmileyIndex] = useState(0)
   const [selectedAccessoryIndex, setSelectedAccessoryIndex] = useState(0)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [personalityText, setPersonalityText] = useState('')
+
+  const { state: personalityState, updatePersonality, loadPersonality } = useAgentPersonality()
 
   const handleSmileyHover = useCallback(() => {
     setCurrentSmileyIndex((prev) => {
@@ -43,6 +47,23 @@ const AvatarButton = () => {
   const closeModal = useCallback(() => {
     setIsModalOpen(false)
   }, [])
+
+  const handleSavePersonality = useCallback(async () => {
+    if (personalityText.trim()) {
+      await updatePersonality(personalityText.trim())
+      closeModal()
+    }
+  }, [personalityText, updatePersonality, closeModal])
+
+  // Load personality on component mount
+  useEffect(() => {
+    loadPersonality()
+  }, [loadPersonality])
+
+  // Sync local state with personality state
+  useEffect(() => {
+    setPersonalityText(personalityState.personality_description)
+  }, [personalityState.personality_description])
 
   useEffect(() => {
     if (!isModalOpen) return
@@ -83,22 +104,17 @@ const AvatarButton = () => {
               onClick={(event) => event.stopPropagation()}
             >
               <div className="text-center mb-4">
-                <p className="text-lg font-semibold">Your Companion</p>
-                <p className="text-sm text-[#888888]">Pick your accessory vibe</p>
+                <p className="text-lg font-semibold">Your Agent</p>
               </div>
 
-              {/* Wardrobe-style avatar display */}
               <div className="flex flex-col items-center gap-6">
-                {/* Esther avatar with layered accessories */}
                 <div className="relative flex h-40 w-40 items-center justify-center rounded-full bg-white border-2 border-white/20">
-                  {/* Base Esther avatar */}
                   <img
                     src={smileys[currentSmileyIndex]}
                     alt="Esther avatar"
                     className="absolute inset-0 h-full w-full object-contain z-10"
                   />
 
-                  {/* Layered accessory - positioned to overlay like clothing */}
 
                   <img
                     src={accessories[selectedAccessoryIndex]}
@@ -111,12 +127,14 @@ const AvatarButton = () => {
                   />
                 </div>
 
-                {/* Accessory wardrobe grid */}
                 <div className="flex flex-col gap-3">
                   <div>
                     <textarea
-                      className="w-full border max-h-40 min-h-20 border-[#6d6d6d] p-2 rounded-xl  outline-none text-white placeholder-[#888888] leading-5"
-                      placeholder="Enter your AI Description"
+                      className="w-full border max-h-40 min-h-20 border-[#6d6d6d] p-2 rounded-xl outline-none text-white placeholder-[#888888] leading-5 bg-transparent"
+                      placeholder="Enter your agent's personality"
+                      value={personalityText}
+                      onChange={(e) => setPersonalityText(e.target.value)}
+                      disabled={personalityState.isLoading}
                     />
                   </div>
                   <div className="grid grid-cols-4 gap-3">
@@ -142,13 +160,30 @@ const AvatarButton = () => {
                 </div>
               </div>
 
-              <button
-                type="button"
-                className="rounded-full bg-white/10 px-6 py-3 text-sm font-medium hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 transition-colors"
-                onClick={closeModal}
-              >
-                Done
-              </button>
+              {personalityState.error && (
+                <div className="text-red-400 text-sm text-center">
+                  {personalityState.error}
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  className="rounded-full bg-white/10 px-6 py-3 text-sm font-medium hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 transition-colors"
+                  onClick={closeModal}
+                  disabled={personalityState.isLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="rounded-full bg-blue-600 px-6 py-3 text-sm font-medium hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleSavePersonality}
+                  disabled={personalityState.isLoading || !personalityText.trim()}
+                >
+                  {personalityState.isLoading ? 'Saving...' : 'Save'}
+                </button>
+              </div>
             </motion.div>
           </motion.div>,
           document.body
@@ -168,10 +203,8 @@ const AvatarButton = () => {
         transition={{ type: 'tween', ease: 'easeInOut', duration: 0.25 }}
       >
         <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-white">
-          {/* Base Esther avatar */}
           <img src={smileys[currentSmileyIndex]} alt="Esther avatar" className="h-10 w-10 object-contain z-10" />
 
-          {/* Layered accessory - same as in modal */}
           <img
             src={accessories[selectedAccessoryIndex]}
             alt="Selected accessory"
