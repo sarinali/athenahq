@@ -12,18 +12,18 @@ export class ScreenshotApi extends ConveyorApi {
       ? this.invoke('screenshot-start-polling', apiEndpoint, pollInterval)
       : this.invoke('screenshot-start-polling', apiEndpoint)
 
-  stopPolling = () =>
-    this.invoke('screenshot-stop-polling')
+  stopPolling = () => this.invoke('screenshot-stop-polling')
 
-  isPolling = () =>
-    this.invoke('screenshot-is-polling')
+  isPolling = () => this.invoke('screenshot-is-polling')
 
-  captureManual = (): Promise<ScreenshotResult> =>
-    this.invoke('screenshot-capture-manual')
+  captureManual = (): Promise<ScreenshotResult> => this.invoke('screenshot-capture-manual')
 
-  setEndpoint = (apiEndpoint: string) =>
-    this.invoke('screenshot-set-endpoint', apiEndpoint)
+  captureWithIntent = (intent: string): Promise<ScreenshotResult> =>
+    this.invoke('screenshot-capture-with-intent', intent)
 
-  setInterval = (interval: number) =>
-    this.invoke('screenshot-set-interval', interval)
+  setEndpoint = (apiEndpoint: string) => this.invoke('screenshot-set-endpoint', apiEndpoint)
+
+  setInterval = (interval: number) => this.invoke('screenshot-set-interval', interval)
+
+  sendString = (message: string): Promise<ScreenshotResult> => this.invoke('screenshot-send-string', message)
 }

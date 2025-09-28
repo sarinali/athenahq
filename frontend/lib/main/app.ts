@@ -41,7 +41,7 @@ export function createAppWindow(): void {
     frame: false,
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 20, y: 20 },
-    //vibrancy: false, 
+    //vibrancy: false,
     title: 'athenahq',
 
     maximizable: false,
@@ -50,9 +50,10 @@ export function createAppWindow(): void {
     webPreferences: {
       preload: join(__dirname, '../preload/preload.js'),
       sandbox: false,
+      contextIsolation: true,
+      nodeIntegration: false,
     },
   })
-  
 
   registerWindowHandlers(mainWindow)
   registerAppHandlers(app)

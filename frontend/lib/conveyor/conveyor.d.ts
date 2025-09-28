@@ -1,4 +1,4 @@
-import type { ConveyorApi } from '@/lib/conveyor/api'
+  import type { ConveyorApi } from '@/lib/conveyor/api'
 
 declare global {
   interface Window {

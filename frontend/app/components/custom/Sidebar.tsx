@@ -1,6 +1,5 @@
 import React from 'react'
 import GradientBorderView from '../ui/gradient-border-view'
-import { Plus } from 'lucide-react'
 import TodoItem from './TodoItem'
 import { Todo } from '../../types/content-area-types'
 
@@ -24,9 +23,7 @@ const Sidebar = ({ todos, activeTodoId, onTodoSelect, onNewTodo, onCompleteTodo 
     <GradientBorderView className="m-2 rounded-2xl" contentClassName="w-[240px] h-full rounded-2xl flex flex-col">
       {/* Header with New Todo button */}
 
-      <div className="w-full flex justify-end p-2">
-        
-      </div>
+      <div className="w-full flex justify-end p-2"></div>
       <div className="h-10" />
 
       {/* Todo List */}

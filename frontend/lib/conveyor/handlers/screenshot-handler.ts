@@ -62,7 +62,7 @@ export const registerScreenshotHandlers = () => {
       return {
         success: false,
         message: 'Screenshot service not available',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
     }
 
@@ -74,7 +74,33 @@ export const registerScreenshotHandlers = () => {
       return {
         success: false,
         message: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: Date.now()
+        timestamp: Date.now(),
+      }
+    }
+  })
+
+  handle('screenshot-capture-with-intent', async (intent: string) => {
+    console.log('[ScreenshotHandler] screenshot-capture-with-intent called with intent:', intent)
+    const service = getScreenshotService()
+    if (!service) {
+      console.error('[ScreenshotHandler] Screenshot service not available for capture with intent')
+      return {
+        success: false,
+        message: 'Screenshot service not available',
+        timestamp: Date.now(),
+      }
+    }
+
+    try {
+      const result = await service.captureScreenshotWithIntent(intent)
+      console.log('[ScreenshotHandler] Capture with intent result:', result)
+      return result
+    } catch (error) {
+      console.error('[ScreenshotHandler] Error during capture with intent:', error)
+      return {
+        success: false,
+        message: `Capture with intent failed: ${error}`,
+        timestamp: Date.now(),
       }
     }
   })
@@ -112,6 +138,33 @@ export const registerScreenshotHandlers = () => {
     } catch (error) {
       console.error('[ScreenshotHandler] Error setting interval:', error)
       return false
+    }
+  })
+
+  handle('screenshot-send-string', async (message: string) => {
+    console.log('[ScreenshotHandler] screenshot-send-string called with message:', message)
+    const service = getScreenshotService()
+    if (!service) {
+      console.error('[ScreenshotHandler] Screenshot service not available for send-string')
+      return {
+        success: false,
+        message: 'Screenshot service not available',
+        timestamp: Date.now(),
+      }
+    }
+
+    try {
+      // Send the string to the backend
+      const result = await service.sendStringToBackend(message)
+      console.log('[ScreenshotHandler] Send string result:', result)
+      return result
+    } catch (error) {
+      console.error('[ScreenshotHandler] Error sending string:', error)
+      return {
+        success: false,
+        message: `Send string failed: ${error}`,
+        timestamp: Date.now(),
+      }
     }
   })
 
