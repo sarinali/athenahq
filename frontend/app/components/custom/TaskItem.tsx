@@ -10,6 +10,11 @@ import Smiley1 from '../../assets/smiley1.svg'
 import Smiley2 from '../../assets/smiley2.svg'
 import Smiley3 from '../../assets/smiley3.svg'
 import Smiley4 from '../../assets/smiley4.svg'
+import Smiley5 from '../../assets/smiley5.svg'
+import Smiley6 from '../../assets/smiley6.svg'
+import Smiley7 from '../../assets/smiley7.svg'
+import Smiley8 from '../../assets/smiley8.svg'
+import Smiley9 from '../../assets/smiley9.svg'
 import { useSSEToolCalling } from '../../hooks/useSSEToolCalling'
 import ToolCallItem from './ToolCallItem'
 import ExecutionStartedItem from './ExecutionStartedItem'
@@ -47,7 +52,7 @@ const TaskItem = ({
     id: task?.id || 'new-task',
   })
 
-  const smileys = [Smiley1, Smiley2, Smiley3, Smiley4]
+  const smileys = [Smiley1, Smiley2, Smiley3, Smiley4, Smiley5, Smiley6, Smiley7, Smiley8, Smiley9]
   const currentSmileySrc = smileys[currentSmileyIndex]
 
   useEffect(() => {
