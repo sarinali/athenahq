@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { DndContext, DragEndEvent, DragOverEvent } from '@dnd-kit/core'
 import TaskItem from './TaskItem'
 import { Todo, Task } from '../../types/content-area-types'
+import AvatarButton from './AvatarButton'
 import '@/lib/conveyor/conveyor.d.ts'
 
 interface ContentAreaProps {
@@ -157,12 +158,16 @@ const ContentArea = ({ selectedTodo, onUpdateTodo, onUpdateTask, onAddTask, onDe
                   <TaskItem todoId={selectedTodo.id} onAddTask={onAddTask} isNewTaskItem={true} />
                 </div>
               </div>
+              
             </div>
           ) : (
             <div className="text-3xl font-bold text-white mb-4">Select a todo to view details</div>
           )}
         </div>
       </div>
+      <div className="absolute bottom-6 right-6 z-30">
+                <AvatarButton />
+              </div>
     </DndContext>
   )
 }

@@ -78,7 +78,7 @@ const Header = ({ onNewTodo, noteCount }: HeaderProps) => {
             <ListTodo className="h-4 w-4" />
             New 
             List
-          </button>
+          </button> 
         </GradientBorderView>
         <HeaderButton icon={Trash} label="Delete" />
       </div>
