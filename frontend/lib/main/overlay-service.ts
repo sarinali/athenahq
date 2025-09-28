@@ -20,15 +20,20 @@ export class OverlayService {
 
     try {
       const primaryDisplay = screen.getPrimaryDisplay()
-      const { width: screenWidth } = primaryDisplay.workAreaSize
+      const { x: workAreaX, y: workAreaY, width: workAreaWidth } = primaryDisplay.workArea
+
+      const overlayWidth = 400
+      const overlayHeight = 90
+      const overlayX = Math.round(workAreaX + (workAreaWidth - overlayWidth) / 2)
+      const overlayY = workAreaY + 60
 
       const preloadPath = join(__dirname, '../preload/overlay-preload.js')
 
       this.overlayWindow = new BrowserWindow({
-        width: 400,
-        height: 30,
-        x: screenWidth - 420,
-        y: 60,
+        width: overlayWidth,
+        height: overlayHeight,
+        x: overlayX,
+        y: overlayY,
         frame: false,
         transparent: true,
         alwaysOnTop: true,
@@ -51,7 +56,7 @@ export class OverlayService {
       this.overlayWindow.webContents.once('did-finish-load', () => {
         try {
           const glassId = liquidGlass.addView(this.overlayWindow!.getNativeWindowHandle(), {
-            cornerRadius: 16,
+            cornerRadius: 8,
             opaque: false // Keep transparent for better glass effect
           })
           liquidGlass.unstable_setVariant(glassId, 1);
@@ -95,11 +100,10 @@ export class OverlayService {
   }
 
   showToast(message: string, type: ToastData['type'], duration = 5000): void {
-    const truncatedMessage = message.length > 60 ? message.substring(0, 57) + '...' : message
 
     const toast: ToastData = {
       id: Math.random().toString(36).substring(7),
-      message: truncatedMessage,
+      message: message,
       type,
       duration
     }

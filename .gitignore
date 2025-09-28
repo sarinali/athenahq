@@ -1,3 +1,4 @@
 backend/.env
 *.pyc
 token.pickle
+gh_key.pem

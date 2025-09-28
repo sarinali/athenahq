@@ -10,6 +10,10 @@ import Smiley1 from '../../assets/smiley1.svg'
 import Smiley2 from '../../assets/smiley2.svg'
 import Smiley3 from '../../assets/smiley3.svg'
 import Smiley4 from '../../assets/smiley4.svg'
+import { useSSEToolCalling } from '../../hooks/useSSEToolCalling'
+import ToolCallItem from './ToolCallItem'
+import ExecutionStartedItem from './ExecutionStartedItem'
+import FinalResultItem from './FinalResultItem'
 
 interface TaskItemProps {
   task?: Task
@@ -37,6 +41,7 @@ const TaskItem = ({
   const [currentSmileyIndex, setCurrentSmileyIndex] = useState(0)
   const [isHoveringPopover, setIsHoveringPopover] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const { toolCalls, isExecuting, executionState, startExecution, clearToolCalls } = useSSEToolCalling()
 
   const { isOver, setNodeRef } = useDroppable({
     id: task?.id || 'new-task',
@@ -60,8 +65,14 @@ const TaskItem = ({
 
   useEffect(() => {
     onHighlightChange?.(isHighlighted)
-    setIsPopoverOpen(isHighlighted)
-  }, [isHighlighted, onHighlightChange])
+    setIsPopoverOpen(isHighlighted || isExecuting || toolCalls.length > 0 || executionState.isStarted)
+  }, [isHighlighted, isExecuting, toolCalls.length, executionState.isStarted, onHighlightChange])
+
+  useEffect(() => {
+    if (!isPopoverOpen) {
+      clearToolCalls()
+    }
+  }, [isPopoverOpen, clearToolCalls])
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setContent(e.target.value)
@@ -141,6 +152,12 @@ const TaskItem = ({
     setIsHoveringPopover(true)
   }
 
+  const handleDoItForMe = () => {
+    if (content.trim() && !isExecuting) {
+      startExecution(content.trim())
+    }
+  }
+
   const shouldShowDottedBorder = isOver && !isNewTaskItem
 
   return (
@@ -188,7 +205,7 @@ const TaskItem = ({
           {task?.active && <ActiveDraggable id={`active-${task.id}`} />}
         </div>
       </PopoverTrigger>
-      <PopoverContent side="top" align="start" className="border-none p-0 bg-transparent w-auto" sideOffset={8}>
+      <PopoverContent side="top" align="start" className="border-none p-0 bg-transparent w-auto max-w-sm" sideOffset={8}>
         <AnimatePresence>
           {isPopoverOpen && (
             <motion.div
@@ -196,41 +213,91 @@ const TaskItem = ({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 5 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="rounded-lg bg-black/40 backdrop-blur-md border border-white/10 overflow-hidden"
             >
-              <motion.div
-                className="rounded-lg bg-black/40 backdrop-blur-md border border-white/10 cursor-pointer p-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onHoverStart={handlePopoverHover}
-                onHoverEnd={() => setIsHoveringPopover(false)}
-                whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-              >
-                <div className="flex items-center gap-2">
-                  <motion.div
-                    animate={isHoveringPopover ? { scale: 1.1 } : { scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-                  >
-                    <Avatar className="size-6">
-                      <AvatarFallback
-                        className="overflow-hidden"
-                        style={{
-                          background: 'hsla(0,0%,100%,1)',
-                          backgroundImage: `
-                            radial-gradient(at 0% 50%, hsla(214,100%,78%,1) 0px, transparent 50%),
-                            radial-gradient(at 80% 50%, hsla(340,100%,76%,0.66) 0px, transparent 50%),
-                            radial-gradient(at 80% 100%, hsla(240,100%,70%,0.54) 0px, transparent 50%)
-                          `,
-                        }}
-                      >
-                        <img src={currentSmileySrc} alt="smiley" className="w-4 h-4 object-contain" />
-                      </AvatarFallback>
-                    </Avatar>
-                  </motion.div>
-                  <div className="text-sm font-medium text-white">Do it for me</div>
-                </div>
-              </motion.div>
+              {!isExecuting && toolCalls.length === 0 && (
+                <motion.div
+                  className="cursor-pointer p-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onHoverStart={handlePopoverHover}
+                  onHoverEnd={() => setIsHoveringPopover(false)}
+                  whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  onClick={handleDoItForMe}
+                >
+                  <div className="flex items-center gap-2">
+                    <motion.div
+                      animate={isHoveringPopover ? { scale: 1.1 } : { scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                    >
+                      <Avatar className="size-6">
+                        <AvatarFallback
+                          className="overflow-hidden"
+                          style={{
+                            background: 'white',
+                          }}
+                        >
+                          <img src={currentSmileySrc} alt="smiley" className="w-4 h-4 object-contain" />
+                        </AvatarFallback>
+                      </Avatar>
+                    </motion.div>
+                    <div className="text-sm font-medium text-white">Do it for me</div>
+                  </div>
+                </motion.div>
+              )}
+
+              {(isExecuting || toolCalls.length > 0 || executionState.isStarted) && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  className="max-h-64 overflow-y-auto"
+                >
+                  <AnimatePresence mode="wait">
+                    {(() => {
+                      if (executionState.finalResult) {
+                        return (
+                          <FinalResultItem
+                            key="final-result"
+                            message={executionState.finalResult}
+                            smileySrc={currentSmileySrc}
+                          />
+                        )
+                      }
+
+                      const currentlyExecuting = toolCalls.find(call => call.status === 'started')
+                      if (currentlyExecuting) {
+                        return (
+                          <ToolCallItem
+                            key={currentlyExecuting.id}
+                            toolCall={currentlyExecuting}
+                          />
+                        )
+                      }
+
+                      const completedTools = toolCalls.filter(call => call.status === 'completed')
+                      if (completedTools.length > 0) {
+                        const mostRecentCompleted = completedTools[completedTools.length - 1]
+                        return (
+                          <ToolCallItem
+                            key={mostRecentCompleted.id}
+                            toolCall={mostRecentCompleted}
+                          />
+                        )
+                      }
+
+                      if (executionState.isStarted) {
+                        return <ExecutionStartedItem key="execution-started" />
+                      }
+
+                      return null
+                    })()}
+                  </AnimatePresence>
+                </motion.div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

@@ -4,6 +4,9 @@ export interface ScreenshotResult {
   success: boolean
   message: string
   timestamp: number
+  status?: string
+  nudge?: string | null
+  showOverlay?: boolean
 }
 
 export class ScreenshotApi extends ConveyorApi {
