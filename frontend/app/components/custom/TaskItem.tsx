@@ -21,7 +21,15 @@ interface TaskItemProps {
   onHighlightChange?: (isHighlighted: boolean) => void
 }
 
-const TaskItem = ({ task, todoId, onUpdateTask, onDeleteTask, onAddTask, isNewTaskItem = false, onHighlightChange }: TaskItemProps) => {
+const TaskItem = ({
+  task,
+  todoId,
+  onUpdateTask,
+  onDeleteTask,
+  onAddTask,
+  isNewTaskItem = false,
+  onHighlightChange,
+}: TaskItemProps) => {
   const [content, setContent] = useState(task?.content || '')
   const [isEditing, setIsEditing] = useState(isNewTaskItem)
   const [isHighlighted, setIsHighlighted] = useState(false)
@@ -154,7 +162,7 @@ const TaskItem = ({ task, todoId, onUpdateTask, onDeleteTask, onAddTask, isNewTa
             {task?.completed && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
           </div>
 
-          <div className="flex-1 min-w-0">
+          <div className="flex min-w-0 ">
             <textarea
               ref={textareaRef}
               className={`w-full bg-transparent border-none outline-none resize-none overflow-hidden text-white placeholder-[#888888] leading-5 ${
